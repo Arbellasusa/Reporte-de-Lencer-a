@@ -288,6 +288,7 @@
       </table>
       <div class="sig-block">
         <div class="sig-label">Firma — Entregado por (Houseman / Supervisor)</div>
+        <input type="text" id="deliverName" placeholder="Nombre de quien entrega / Name of person delivering" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy); margin-bottom:8px;">
         <div class="sig-pad-wrap" id="sigWrapDeliver">
           <canvas class="sig-canvas" id="sigDeliver"></canvas>
           <span class="sig-hint">Firma aquí con el dedo</span>
@@ -297,6 +298,7 @@
 
       <div class="sig-block">
         <div class="sig-label">Firma — Recibido por (Lavandería)</div>
+        <input type="text" id="receiveName" placeholder="Nombre de quien recibe / Name of person receiving" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy); margin-bottom:8px;">
         <div class="sig-pad-wrap" id="sigWrapReceive">
           <canvas class="sig-canvas" id="sigReceive"></canvas>
           <span class="sig-hint">Firma aquí con el dedo</span>
@@ -361,6 +363,7 @@
       noRoom: 'Sin habitación',
       deliveredBy: 'Entregado por: Houseman y/o Supervisor',
       receivedBy: 'Recibido por: Lavandería',
+      nameLabel: 'Nombre',
       dateTimeLine: 'Fecha y hora: _______________',
       footer: (c)=> c + ' — Generado desde Reporte Diario de Lencería'
     },
@@ -379,6 +382,7 @@
       noRoom: 'No room assigned',
       deliveredBy: 'Delivered by: Houseman and/or Supervisor',
       receivedBy: 'Received by: Laundry',
+      nameLabel: 'Name',
       dateTimeLine: 'Date & time: _______________',
       footer: (c)=> c + ' — Generated from Daily Laundry Report'
     }
@@ -1069,7 +1073,15 @@
     doc.setTextColor(...navy);
     doc.text(t.deliveredBy, leftX, y);
     doc.text(t.receivedBy, rightX, y);
-    y += 24;
+    y += 14;
+    const deliverName = ($('deliverName') && $('deliverName').value || '').trim();
+    const receiveName = ($('receiveName') && $('receiveName').value || '').trim();
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.text(t.nameLabel + ': ' + (deliverName || '_______________'), leftX, y);
+    doc.text(t.nameLabel + ': ' + (receiveName || '_______________'), rightX, y);
+    y += 22;
+    doc.setFont('helvetica','normal');
     doc.setFontSize(8);
     doc.setTextColor(120,120,120);
     doc.text(t.dateTimeLine, leftX, y);
