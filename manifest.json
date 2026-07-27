@@ -1,0 +1,14 @@
+{
+  "name": "Reporte Diario de Lencería",
+  "short_name": "Lencería",
+  "description": "G&G Commercial Solutions Inc. — Reporte diario de lencería por habitación",
+  "start_url": "./reporte-lenceria_3.html",
+  "display": "standalone",
+  "background_color": "#F7F3EC",
+  "theme_color": "#1C2B4A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
