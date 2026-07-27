@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Reporte Diario de Lencería</title>
+
+<!-- Makes "Add to Home Screen" open full-screen like a real app, with its own icon -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lencería">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1C2B4A">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --cream:#F7F3EC;
+    --paper:#FFFDF9;
+    --navy:#1C2B4A;
+    --navy-soft:#3A4A6B;
+    --gold:#B8923D;
+    --gold-soft:#E4D3A5;
+    --teal:#4F7C77;
+    --line:#D8D2C4;
+    --danger:#A2402E;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; background:var(--cream);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color:var(--navy);
+    min-height:100%;
+  }
+  .wrap{max-width:520px; margin:0 auto; padding:0 0 48px;}
+
+  /* Header ledger band */
+  header{
+    background:var(--navy);
+    color:var(--cream);
+    padding:22px 20px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 10px, transparent 10px 20px);
+    opacity:.55;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--gold-soft); font-weight:600; margin-bottom:6px;
+  }
+  h1{
+    font-family:Georgia, "Times New Roman", serif;
+    font-size:26px; margin:0 0 4px; font-weight:700; letter-spacing:.01em;
+  }
+  .date-line{
+    font-size:14px; color:#C7D0E0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .date-line input[type="date"]{
+    background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25);
+    color:var(--cream); border-radius:6px; padding:4px 8px; font-size:14px;
+    font-family:inherit;
+  }
+  .save-status{
+    font-size:12px; margin-top:8px; color:#9FD8A6; display:flex; align-items:center; gap:5px;
+  }
+  .save-status.err{color:#F2A79E; font-weight:700;}
+  .save-status.warn{color:#F0CC7A; font-weight:600;}
+  .save-status .dot{
+    width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0;
+  }
+
+  section{ padding:20px; }
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:18px;
+    box-shadow:0 1px 2px rgba(28,43,74,.04);
+  }
+  .card h2{
+    font-family:Georgia, serif;
+    font-size:15px; margin:0 0 10px;
+    display:flex; align-items:center; gap:8px;
+    color:var(--navy);
+  }
+  .card h2 .tag{
+    font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+    background:var(--gold-soft); color:#5C4A17;
+    padding:2px 7px; border-radius:100px; font-weight:700;
+  }
+  textarea{
+    width:100%; min-height:110px; resize:vertical;
+    border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; font-size:15px; font-family:inherit;
+    background:#fff; color:var(--navy);
+  }
+  .hint{font-size:12px; color:#7B8399; margin-top:6px; line-height:1.4;}
+
+  .row{display:flex; gap:8px; margin-top:10px;}
+  .row input[type="text"], .row input[type="number"]{
+    border:1px solid var(--line); border-radius:8px; padding:9px 10px;
+    font-size:15px; font-family:inherit; background:#fff; color:var(--navy);
+  }
+  .row input[type="text"]{flex:1.4; min-width:0;}
+  .row input[type="number"]{flex:0.7; min-width:0;}
+
+  button{
+    font-family:inherit; font-size:14px; font-weight:600;
+    border:none; border-radius:8px; padding:10px 14px;
+    cursor:pointer; transition:transform .05s ease;
+  }
+  button:active{transform:scale(.97);}
+  .btn-primary{background:var(--navy); color:var(--cream); width:100%; margin-top:10px;}
+  .btn-gold{background:var(--gold); color:#3A2E0C;}
+  .btn-wa{background:#25D366; color:#0B3B24;}
+  .btn-excel{background:var(--teal); color:#fff; width:100%;}
+  .btn-ghost{background:transparent; color:var(--navy-soft); border:1px solid var(--line);}
+  .spinner{
+    display:inline-block; width:13px; height:13px; border:2px solid rgba(0,0,0,.25);
+    border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite;
+    vertical-align:-2px; margin-right:6px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .actions{display:flex; gap:8px; margin-top:12px;}
+  .actions button{flex:1;}
+  .actions a.btn-wa{
+    flex:1; text-align:center; text-decoration:none; display:inline-flex;
+    align-items:center; justify-content:center;
+  }
+
+  /* Ledger table */
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  thead th{
+    text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:#7B8399; font-weight:700; padding:0 4px 8px; border-bottom:1px solid var(--line);
+  }
+  thead th:last-child, tbody td:last-child{text-align:right;}
+  tbody td{
+    padding:9px 4px; border-bottom:1px dashed var(--line);
+    font-family:ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  tbody td.item-name{font-family:inherit; font-weight:600; color:var(--navy);}
+  tbody tr:last-child td{border-bottom:none;}
+  tfoot td{
+    padding:10px 4px 2px; font-weight:800; border-top:2px solid var(--navy);
+    font-family:ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  tfoot td.item-name{font-family:inherit;}
+  .qty-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:34px; padding:3px 8px; border-radius:6px;
+    background:var(--teal); color:#fff; font-weight:700;
+  }
+  .del-btn{
+    background:none; border:none; color:var(--danger); font-size:16px; padding:2px 6px; margin-left:4px;
+  }
+  .empty{
+    text-align:center; color:#9AA1B2; font-size:13px; padding:18px 0;
+  }
+
+  .history-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 2px; border-bottom:1px dashed var(--line); font-size:14px;
+  }
+  .history-item:last-child{border-bottom:none;}
+  .history-item .d{font-weight:600;}
+  .history-item .t{color:var(--teal); font-weight:700; font-family:ui-monospace, monospace;}
+  .history-item button{background:none; border:none; color:var(--navy-soft); text-decoration:underline; font-size:13px; padding:0;}
+
+  .std-row{
+    display:flex; align-items:center; gap:8px;
+    padding:9px 2px; border-bottom:1px dashed var(--line);
+  }
+  .std-row:last-child{border-bottom:none;}
+  .std-row .std-name{flex:1; font-size:14px; font-weight:600; color:var(--navy);}
+  .std-row .stepper{
+    display:flex; align-items:center; border:1px solid var(--line); border-radius:8px; overflow:hidden;
+  }
+  .std-row .stepper button{
+    background:var(--cream); color:var(--navy); border:none; padding:8px 14px; font-size:18px; font-weight:700;
+  }
+  .std-row .stepper .std-qty{
+    width:36px; text-align:center; display:inline-block;
+    border-left:1px solid var(--line); border-right:1px solid var(--line);
+    font-family:ui-monospace, monospace; font-size:15px; font-weight:700; padding:8px 0;
+    color:var(--teal);
+  }
+  .std-row .add-plus{
+    background:var(--teal); color:#fff; border:none; border-radius:8px;
+    width:32px; height:32px; font-size:17px; font-weight:700; line-height:1;
+  }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--navy); color:var(--cream); padding:10px 18px;
+    border-radius:100px; font-size:13px; font-weight:600;
+    box-shadow:0 4px 14px rgba(0,0,0,.2);
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1;}
+
+  .sig-block{ margin-top:14px; }
+  .sig-block .sig-label{
+    font-size:12px; font-weight:700; color:var(--navy-soft);
+    text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px;
+  }
+  .sig-pad-wrap{
+    position:relative; border:1px dashed var(--line); border-radius:8px;
+    background:#fff; overflow:hidden;
+  }
+  canvas.sig-canvas{
+    width:100%; height:120px; display:block; touch-action:none; cursor:crosshair;
+  }
+  .sig-pad-wrap .sig-hint{
+    position:absolute; left:10px; bottom:8px; font-size:12px; color:#B7BECB;
+    pointer-events:none;
+  }
+  .sig-pad-wrap.signed .sig-hint{ display:none; }
+  .sig-actions{ display:flex; justify-content:flex-end; margin-top:4px; }
+  .sig-actions button{
+    background:none; border:none; color:var(--navy-soft); text-decoration:underline;
+    font-size:12px; padding:2px 0;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">G&amp;G Commercial Solutions Inc. · Housekeeping</div>
+    <h1>Reporte de Lencería</h1>
+    <div class="date-line">
+      Viendo: <input type="date" id="dateSel">
+    </div>
+    <div class="save-status" id="saveStatus">Listo</div>
+  </header>
+
+  <section>
+
+    <div class="card">
+      <h2>Pegar de WhatsApp / Notas <span class="tag">Auto</span></h2>
+      <textarea id="pasteBox" placeholder="Ej:&#10;Toallas 20&#10;Sábanas: 15&#10;12 fundas&#10;Toallones 8"></textarea>
+      <div class="hint">Pega el mensaje o nota tal cual lo copiaste. Reconoce líneas como "Toallas 20", "20 toallas" o "Sábanas: 15". Los artículos no reconocidos se agregan igual con el texto tal cual.</div>
+      <button class="btn-primary" id="parseBtn">Agregar al reporte de hoy</button>
+    </div>
+
+    <div class="card" id="contextCard">
+      <h2>Habitación actual <span class="tag">Excel</span></h2>
+      <div class="hint" style="margin:0 0 8px;">Llena esto antes de agregar artículos: así el reporte se puede exportar en el mismo formato de Excel, por habitación.</div>
+      <div class="row" style="margin-top:0;">
+        <input type="text" id="hkName" placeholder="Housekeeping (nombre)">
+        <input type="text" id="roomNum" placeholder="Habitación">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Artículos estándar <span class="tag">1 toque</span></h2>
+      <div class="hint" style="margin:0 0 10px;">Toca "+" para sumar una unidad al reporte de hoy al instante, o "−" para quitarla. El total se actualiza solo, sin pasos extra.</div>
+      <div id="stdGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Agregar a mano</h2>
+      <div class="row">
+        <input type="text" id="manualName" placeholder="Artículo (ej. Fundas)">
+        <input type="number" id="manualQty" placeholder="Cant." min="0">
+      </div>
+      <button class="btn-gold" style="width:100%; margin-top:10px;" id="manualAdd">+ Agregar artículo</button>
+    </div>
+
+    <div class="card">
+      <h2 id="tableTitle">Total del día</h2>
+      <table id="ledger">
+        <thead>
+          <tr><th>Artículo</th><th>Cantidad</th></tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+        <tfoot>
+          <tr><td class="item-name">Total general</td><td id="grandTotal">0</td></tr>
+        </tfoot>
+      </table>
+      <div class="sig-block">
+        <div class="sig-label">Firma — Entregado por (Houseman / Supervisor)</div>
+        <div class="sig-pad-wrap" id="sigWrapDeliver">
+          <canvas class="sig-canvas" id="sigDeliver"></canvas>
+          <span class="sig-hint">Firma aquí con el dedo</span>
+        </div>
+        <div class="sig-actions"><button type="button" data-target="sigDeliver">Borrar firma</button></div>
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-label">Firma — Recibido por (Lavandería)</div>
+        <div class="sig-pad-wrap" id="sigWrapReceive">
+          <canvas class="sig-canvas" id="sigReceive"></canvas>
+          <span class="sig-hint">Firma aquí con el dedo</span>
+        </div>
+        <div class="sig-actions"><button type="button" data-target="sigReceive">Borrar firma</button></div>
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <select id="pdfLang" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy);">
+          <option value="es">PDF en Español</option>
+          <option value="en">PDF in English</option>
+        </select>
+      </div>
+      <div class="actions">
+        <a class="btn-wa" id="waBtn" href="#" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+        <button class="btn-gold" id="pdfBtn">Exportar PDF</button>
+      </div>
+      <div class="actions" style="margin-top:8px;">
+        <button class="btn-excel" id="excelBtn">Exportar Excel (por habitación)</button>
+      </div>
+      <div class="actions" style="margin-top:8px;">
+        <button class="btn-ghost" id="copyBtn">Copiar resumen</button>
+        <button class="btn-ghost" id="clearBtn" style="color:var(--danger); border-color:#E7C9C2;">Vaciar día</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Historial reciente</h2>
+      <div id="historyList"><div class="empty">Sin reportes anteriores todavía.</div></div>
+    </div>
+
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const todayStr = () => {
+    const d = new Date();
+    const tz = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - tz*60000);
+    return local.toISOString().slice(0,10);
+  };
+  const KEY_PREFIX = 'linen:';
+  const COMPANY_NAME = 'G&G Commercial Solutions Inc.';
+
+  const I18N = {
+    es: {
+      companyLine: (c)=> c.toUpperCase() + ' · HOUSEKEEPING',
+      title: 'Reporte de Lencería',
+      date: 'Fecha',
+      itemCol: 'ARTÍCULO',
+      qtyCol: 'CANTIDAD',
+      grandTotal: 'TOTAL GENERAL',
+      pcs: 'pzas',
+      roomBreakdown: 'DETALLE POR HABITACIÓN',
+      roomCol: 'HABITACIÓN',
+      housekeeperCol: 'HOUSEKEEPING',
+      totalCol: 'TOTAL',
+      noRoom: 'Sin habitación',
+      deliveredBy: 'Entregado por: Houseman y/o Supervisor',
+      receivedBy: 'Recibido por: Lavandería',
+      dateTimeLine: 'Fecha y hora: _______________',
+      footer: (c)=> c + ' — Generado desde Reporte Diario de Lencería'
+    },
+    en: {
+      companyLine: (c)=> c.toUpperCase() + ' · HOUSEKEEPING',
+      title: 'Laundry Report',
+      date: 'Date',
+      itemCol: 'ITEM',
+      qtyCol: 'QUANTITY',
+      grandTotal: 'GRAND TOTAL',
+      pcs: 'pcs',
+      roomBreakdown: 'ROOM BREAKDOWN',
+      roomCol: 'ROOM',
+      housekeeperCol: 'HOUSEKEEPER',
+      totalCol: 'TOTAL',
+      noRoom: 'No room assigned',
+      deliveredBy: 'Delivered by: Houseman and/or Supervisor',
+      receivedBy: 'Received by: Laundry',
+      dateTimeLine: 'Date & time: _______________',
+      footer: (c)=> c + ' — Generated from Daily Laundry Report'
+    }
+  };
+
+  const STANDARD_ITEMS = [
+    'Sábanas Individuales',
+    'Sábanas Queen',
+    'Sábanas King',
+    'Fundas de Almohada',
+    'Toallas Grandes',
+    'Toallas Medianas',
+    'Toallas Pequeñas',
+    'Tapetes de Baño',
+    'Cubrecamas',
+    'Fundas de Edredón',
+    'Batas de Baño'
+  ];
+
+  // English hospitality-industry terms for the standard items, used only when
+  // exporting the PDF in English. Keyed by normalizeKey(spanish label).
+  const ITEM_LABEL_EN = {
+    'sabanas individuales': 'Twin Sheets',
+    'sabanas queen': 'Queen Sheets',
+    'sabanas king': 'King Sheets',
+    'fundas de almohada': 'Pillowcases',
+    'toallas grandes': 'Bath Towels',
+    'toallas medianas': 'Hand Towels',
+    'toallas pequenas': 'Washcloths',
+    'tapetes de bano': 'Bath Mats',
+    'cubrecamas': 'Bedspreads',
+    'fundas de edredon': 'Duvet Covers',
+    'batas de bano': 'Bathrobes'
+  };
+
+  function translateLabel(key, label, lang){
+    if(lang === 'en' && ITEM_LABEL_EN[key]) return ITEM_LABEL_EN[key];
+    return label;
+  }
+
+  function renderStandardGrid(){
+    const grid = $('stdGrid');
+    grid.innerHTML = '';
+    STANDARD_ITEMS.forEach((label)=>{
+      const key = normalizeKey(label);
+      const row = document.createElement('div');
+      row.className = 'std-row';
+      row.dataset.key = key;
+      row.innerHTML = `
+        <span class="std-name">${label}</span>
+        <div class="stepper">
+          <button type="button" class="step-minus" aria-label="Quitar uno">−</button>
+          <span class="std-qty">0</span>
+          <button type="button" class="step-plus" aria-label="Agregar uno">+</button>
+        </div>
+      `;
+      const plusBtn = row.querySelector('.step-plus');
+      const minusBtn = row.querySelector('.step-minus');
+      // Tapping + or − commits immediately to today's report — no separate "confirm" step.
+      plusBtn.addEventListener('click', async ()=>{
+        plusBtn.disabled = true;
+        await addEntries({[key]: {label, qty:1}});
+        plusBtn.disabled = false;
+      });
+      minusBtn.addEventListener('click', async ()=>{
+        minusBtn.disabled = true;
+        await subtractEntry(key, label, 1);
+        minusBtn.disabled = false;
+      });
+      grid.appendChild(row);
+    });
+  }
+
+  function refreshStandardGridQuantities(day){
+    const grid = $('stdGrid');
+    if(!grid) return;
+    grid.querySelectorAll('.std-row').forEach(row=>{
+      const qty = (day.agg[row.dataset.key] && day.agg[row.dataset.key].qty) || 0;
+      const span = row.querySelector('.std-qty');
+      if(span) span.textContent = qty;
+    });
+  }
+
+  let viewDate = todayStr();
+  $('dateSel').value = viewDate;
+
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 1600);
+  }
+
+  // Digital signature pads: capture a finger/mouse drawing and turn it into a
+  // PNG that gets embedded into the exported PDF at the signature line.
+  const signaturePads = {};
+  function makeSignaturePad(canvasId){
+    const canvas = $(canvasId);
+    const wrap = canvas.parentElement;
+    const ctx = canvas.getContext && canvas.getContext('2d');
+    if(!ctx){
+      // Extremely old/unsupported browser: degrade gracefully instead of
+      // breaking the whole app — the report still works, just without a signature.
+      return { clear(){}, isSigned(){ return false; }, dataUrl(){ return null; } };
+    }
+    let dw = 0, dh = 0, drawing = false, signed = false;
+
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      dw = rect.width || 300;
+      dh = rect.height || 120;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = dw * dpr;
+      canvas.height = dh * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#1C2B4A';
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function pos(ev){
+      const rect = canvas.getBoundingClientRect();
+      return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+    }
+    function start(ev){
+      ev.preventDefault();
+      drawing = true;
+      const p = pos(ev);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+    function move(ev){
+      if(!drawing) return;
+      ev.preventDefault();
+      const p = pos(ev);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      if(!signed){ signed = true; wrap.classList.add('signed'); }
+    }
+    function end(){
+      drawing = false;
+    }
+    canvas.addEventListener('pointerdown', start);
+    canvas.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    canvas.addEventListener('pointerleave', end);
+
+    return {
+      clear(){
+        ctx.clearRect(0, 0, dw, dh);
+        signed = false;
+        wrap.classList.remove('signed');
+      },
+      isSigned(){ return signed; },
+      dataUrl(){ return signed ? canvas.toDataURL('image/png') : null; }
+    };
+  }
+
+  function initSignaturePads(){
+    signaturePads.deliver = makeSignaturePad('sigDeliver');
+    signaturePads.receive = makeSignaturePad('sigReceive');
+    document.querySelectorAll('.sig-actions button[data-target]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const key = btn.dataset.target === 'sigDeliver' ? 'deliver' : 'receive';
+        signaturePads[key].clear();
+      });
+    });
+  }
+
+  // In-memory fallback: guarantees the app works within the current session
+  // even if the persistent storage bridge is missing or blocked in this context.
+  const memoryFallback = {};
+  let persistentStorageWorks = null; // null = unknown yet, true/false once tested
+
+  // Detect once whether localStorage actually works in this browser/context
+  // (private browsing, some webviews, or file:// contexts can block it).
+  let localStorageWorks = null;
+  function testLocalStorage(){
+    if(localStorageWorks !== null) return localStorageWorks;
+    try{
+      const t = '__linen_test__';
+      window.localStorage.setItem(t, '1');
+      window.localStorage.removeItem(t);
+      localStorageWorks = true;
+    }catch(e){
+      localStorageWorks = false;
+    }
+    return localStorageWorks;
+  }
+
+  async function loadDay(dateKey){
+    const fullKey = KEY_PREFIX + dateKey;
+    // 1) Try the Claude-artifact storage bridge, if present (only exists inside claude.ai artifacts)
+    if(window.storage && typeof window.storage.get === 'function'){
+      try{
+        const res = await window.storage.get(fullKey, false);
+        if(res){
+          const parsed = JSON.parse(res.value);
+          if(!parsed.agg && !parsed.entries) return {agg: parsed, entries: []};
+          return {agg: parsed.agg || {}, entries: parsed.entries || []};
+        }
+      }catch(e){ /* fall through to localStorage/memory */ }
+    }
+    // 2) Real persistence for when this file runs as a normal web page (GitHub Pages, iPhone, etc.)
+    if(testLocalStorage()){
+      try{
+        const raw = window.localStorage.getItem(fullKey);
+        if(raw) return JSON.parse(raw);
+      }catch(e){ /* fall through to memory */ }
+    }
+    // 3) Last-resort in-memory only (lost on reload) — only reached if both above are unavailable
+    if(fullKey in memoryFallback) return JSON.parse(memoryFallback[fullKey]);
+    return {agg:{}, entries:[]};
+  }
+
+  function setSaveStatus(ok, detail){
+    const el = $('saveStatus');
+    if(!el) return;
+    const time = new Date().toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'});
+    if(ok === true){
+      el.className = 'save-status';
+      el.innerHTML = `<span class="dot"></span> Guardado ${time}`;
+    } else if(ok === 'session'){
+      el.className = 'save-status warn';
+      el.innerHTML = `<span class="dot"></span> Guardado solo en esta sesión (no persiste al recargar)`;
+    } else {
+      el.className = 'save-status err';
+      el.innerHTML = `<span class="dot"></span> No se pudo guardar${detail ? ' — ' + detail : ''}`;
+    }
+  }
+
+  async function saveDay(dateKey, day){
+    const fullKey = KEY_PREFIX + dateKey;
+    const json = JSON.stringify(day);
+    // Always keep the in-memory copy up to date so the current session never loses data
+    memoryFallback[fullKey] = json;
+
+    // 1) Claude-artifact storage bridge, if present
+    if(window.storage && typeof window.storage.set === 'function'){
+      try{
+        const result = await window.storage.set(fullKey, json, false);
+        if(result){
+          const check = await window.storage.get(fullKey, false);
+          if(check && check.value === json){ setSaveStatus(true); return true; }
+        }
+      }catch(e){ /* fall through */ }
+    }
+    // 2) Real browser persistence — this is what actually keeps totals across reloads
+    // when the app runs as a normal web page.
+    if(testLocalStorage()){
+      try{
+        window.localStorage.setItem(fullKey, json);
+        setSaveStatus(true);
+        return true;
+      }catch(e){
+        setSaveStatus('session', 'almacenamiento del navegador lleno o bloqueado');
+        return true;
+      }
+    }
+    // 3) Nothing persistent is available — warn clearly instead of pretending it saved
+    setSaveStatus('session', 'este navegador bloquea el almacenamiento; los datos se perderán al recargar');
+    return true;
+  }
+
+  async function listAllDates(){
+    let keys = [];
+    if(window.storage && typeof window.storage.list === 'function'){
+      try{
+        const res = await window.storage.list(KEY_PREFIX, false);
+        if(res && res.keys) keys = res.keys.slice();
+      }catch(e){ /* fall through to localStorage/memory */ }
+    }
+    if(testLocalStorage()){
+      try{
+        for(let i=0; i<window.localStorage.length; i++){
+          const k = window.localStorage.key(i);
+          if(k && k.startsWith(KEY_PREFIX) && !keys.includes(k)) keys.push(k);
+        }
+      }catch(e){ /* fall through to memory */ }
+    }
+    Object.keys(memoryFallback).forEach(k=>{
+      if(k.startsWith(KEY_PREFIX) && !keys.includes(k)) keys.push(k);
+    });
+    return keys.map(k => k.replace(KEY_PREFIX,'')).sort().reverse();
+  }
+
+  function titleCase(s){
+    return s.trim().replace(/\s+/g,' ').replace(/(^|\s)([a-záéíóúñ])/g, (m,p1,p2)=> p1+p2.toUpperCase());
+  }
+
+  function normalizeKey(s){
+    return s.trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/\s+/g,' ');
+  }
+
+  // Parses free text pasted from WhatsApp/Notes into {itemName: qty} pairs
+  function parseText(text){
+    const found = {};
+    const lines = text.split(/\r?\n|,(?=\s*[A-Za-zÁÉÍÓÚñÑ])/);
+    for(let raw of lines){
+      let line = raw.trim();
+      if(!line) continue;
+      // strip common bullet/emoji noise
+      line = line.replace(/^[-*•✅✔️☑️🔹▪️]+\s*/, '');
+
+      let m = line.match(/^(\d+)\s*(?:x|X)?\s*[:\-]?\s*([A-Za-zÁÉÍÓÚáéíóúñÑ][A-Za-zÁÉÍÓÚáéíóúñÑ\s]*)$/);
+      let qty, name;
+      if(m){
+        qty = parseInt(m[1],10); name = m[2];
+      } else {
+        m = line.match(/^([A-Za-zÁÉÍÓÚáéíóúñÑ][A-Za-zÁÉÍÓÚáéíóúñÑ\s]*?)\s*[:\-]?\s*(\d+)\s*(?:x|X|pzas?|unid(?:ades)?)?\.?$/);
+        if(m){
+          name = m[1]; qty = parseInt(m[2],10);
+        }
+      }
+      if(name !== undefined && qty !== undefined && !isNaN(qty)){
+        const key = normalizeKey(name);
+        if(!key) continue;
+        found[key] = found[key] || {label: titleCase(name), qty:0};
+        found[key].qty += qty;
+      }
+    }
+    return found;
+  }
+
+  async function addEntries(entries){
+    const day = await loadDay(viewDate);
+    const room = ($('roomNum').value || '').trim();
+    const housekeeper = ($('hkName').value || '').trim();
+    let addedAny = false;
+    for(const key in entries){
+      addedAny = true;
+      const {label, qty} = entries[key];
+      if(!day.agg[key]) day.agg[key] = {label, qty:0};
+      day.agg[key].qty += qty;
+      day.entries.push({key, label, qty, room, housekeeper, ts: Date.now()});
+    }
+    if(addedAny){
+      await saveDay(viewDate, day);
+      await renderLedger();
+      await renderHistory();
+    }
+    return addedAny;
+  }
+
+  async function subtractEntry(key, label, amount){
+    const day = await loadDay(viewDate);
+    if(!day.agg[key] || day.agg[key].qty <= 0) return;
+    const removeQty = Math.min(amount, day.agg[key].qty);
+    day.agg[key].qty -= removeQty;
+    if(day.agg[key].qty <= 0) delete day.agg[key];
+
+    // Remove from the most recent matching raw entries too, so the per-room
+    // Excel/PDF breakdown stays accurate (not just the on-screen total).
+    let remaining = removeQty;
+    for(let i = day.entries.length - 1; i >= 0 && remaining > 0; i--){
+      const e = day.entries[i];
+      if(e.key !== key) continue;
+      if(e.qty <= remaining){
+        remaining -= e.qty;
+        day.entries.splice(i,1);
+      } else {
+        e.qty -= remaining;
+        remaining = 0;
+      }
+    }
+    await saveDay(viewDate, day);
+    await renderLedger();
+    await renderHistory();
+  }
+
+  async function renderLedger(){
+    const day = await loadDay(viewDate);
+    const data = day.agg;
+    const body = $('ledgerBody');
+    body.innerHTML = '';
+    const keys = Object.keys(data);
+    const isToday = viewDate === todayStr();
+    $('tableTitle').textContent = isToday ? 'Total del día (hoy)' : 'Total del ' + formatDate(viewDate);
+    refreshStandardGridQuantities(day);
+
+    if(keys.length === 0){
+      body.innerHTML = '<tr><td colspan="2" class="empty">Aún no hay artículos registrados este día.</td></tr>';
+      $('grandTotal').textContent = '0';
+      refreshWaLink();
+      return;
+    }
+    let total = 0;
+    keys.sort((a,b)=> data[b].qty - data[a].qty);
+    for(const key of keys){
+      const item = data[key];
+      total += item.qty;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="item-name">${escapeHtml(item.label)}</td>
+        <td><span class="qty-badge">${item.qty}</span><button class="del-btn" data-key="${key}">×</button></td>`;
+      body.appendChild(tr);
+    }
+    $('grandTotal').textContent = total;
+    refreshWaLink();
+
+    body.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const day2 = await loadDay(viewDate);
+        delete day2.agg[btn.dataset.key];
+        day2.entries = day2.entries.filter(e => e.key !== btn.dataset.key);
+        await saveDay(viewDate, day2);
+        renderLedger();
+        renderHistory();
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function formatDate(dstr){
+    const [y,m,d] = dstr.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  async function renderHistory(){
+    const dates = await listAllDates();
+    const list = $('historyList');
+    const others = dates.filter(d => d !== todayStr());
+    if(others.length === 0){
+      list.innerHTML = '<div class="empty">Sin reportes anteriores todavía.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    for(const d of others.slice(0,14)){
+      const day = await loadDay(d);
+      const total = Object.values(day.agg).reduce((s,i)=> s+i.qty, 0);
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = `<span class="d">${formatDate(d)}</span><span class="t">${total} pzas</span>
+        <button data-date="${d}">Ver</button>`;
+      list.appendChild(row);
+    }
+    list.querySelectorAll('button[data-date]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        viewDate = btn.dataset.date;
+        $('dateSel').value = viewDate;
+        renderLedger();
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+  }
+
+  $('parseBtn').addEventListener('click', async ()=>{
+    const text = $('pasteBox').value;
+    if(!text.trim()){ showToast('Pega el texto primero'); return; }
+    const entries = parseText(text);
+    const added = await addEntries(entries);
+    if(added){
+      $('pasteBox').value = '';
+      showToast('Agregado al reporte');
+    } else {
+      showToast('No se reconoció ningún artículo');
+    }
+  });
+
+  $('manualAdd').addEventListener('click', async ()=>{
+    const name = $('manualName').value.trim();
+    const qty = parseInt($('manualQty').value, 10);
+    if(!name || isNaN(qty) || qty <= 0){ showToast('Escribe artículo y cantidad'); return; }
+    const key = normalizeKey(name);
+    await addEntries({[key]: {label: titleCase(name), qty}});
+    $('manualName').value=''; $('manualQty').value='';
+    showToast('Artículo agregado');
+  });
+
+  async function buildSummary(dateKey){
+    const day = await loadDay(dateKey);
+    const data = day.agg;
+    const keys = Object.keys(data).sort((a,b)=> data[b].qty - data[a].qty);
+    if(keys.length === 0) return null;
+    let total = 0;
+    let lines = [`🧺 ${COMPANY_NAME}`, `Reporte de Lencería — ${formatDate(dateKey)}`, ''];
+    for(const k of keys){ lines.push(`${data[k].label}: ${data[k].qty}`); total += data[k].qty; }
+    lines.push('', `Total: ${total} pzas`);
+    return {text: lines.join('\n'), keys, data, total};
+  }
+
+  $('copyBtn').addEventListener('click', async ()=>{
+    const summary = await buildSummary(viewDate);
+    if(!summary){ showToast('Nada que copiar'); return; }
+    try{
+      await navigator.clipboard.writeText(summary.text);
+      showToast('Resumen copiado');
+    }catch(e){
+      showToast('No se pudo copiar');
+    }
+  });
+
+  async function refreshWaLink(){
+    const link = $('waBtn');
+    if(!link) return;
+    const summary = await buildSummary(viewDate);
+    if(!summary){
+      link.href = '#';
+      link.dataset.text = '';
+      return;
+    }
+    link.dataset.text = summary.text;
+    link.href = 'https://wa.me/?text=' + encodeURIComponent(summary.text);
+  }
+
+  $('waBtn').addEventListener('click', async (ev)=>{
+    const text = ev.currentTarget.dataset.text;
+    if(!text){ ev.preventDefault(); showToast('Nada que compartir todavía'); return; }
+    if(navigator.share){
+      ev.preventDefault();
+      try{
+        await navigator.share({title:'Reporte de Lencería', text});
+      }catch(e){
+        if(!(e && e.name === 'AbortError')){
+          // native share failed/unavailable — open the real link ourselves as fallback
+          window.open(ev.currentTarget.href, '_blank');
+        }
+      }
+    }
+    // if navigator.share doesn't exist, the anchor's own href navigates normally (real user click)
+  });
+
+  $('pdfBtn').addEventListener('click', async ()=>{
+    const btn = $('pdfBtn');
+    const summary = await buildSummary(viewDate);
+    if(!summary){ showToast('Nada que exportar'); return; }
+    const lang = $('pdfLang').value === 'en' ? 'en' : 'es';
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Generando…';
+    try{
+      await generatePDF(summary, viewDate, lang);
+      showToast('PDF generado');
+    }catch(e){
+      showToast('Error PDF: ' + (e && e.message ? e.message : 'desconocido'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  });
+
+  async function generatePDF(summary, dateKey, lang){
+    const t = I18N[lang] || I18N.es;
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      throw new Error('La librería jsPDF no cargó (revisa tu conexión a internet — este archivo la descarga de cdnjs.cloudflare.com)');
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'pt', format:'a4'});
+    const pageW = doc.internal.pageSize.getWidth();
+    const navy = [28,43,74];
+    const gold = [184,146,61];
+    const teal = [79,124,119];
+    const lineGray = [216,210,196];
+
+    // Header band
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, pageW, 98, 'F');
+    doc.setFillColor(...gold);
+    doc.rect(0, 98, pageW, 4, 'F');
+
+    doc.setTextColor(228, 211, 165);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','bold');
+    doc.text(t.companyLine(COMPANY_NAME), 40, 28);
+
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(20);
+    doc.text(t.title, 40, 58);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica','normal');
+    doc.text(t.date + ': ' + formatDate(dateKey), 40, 84);
+
+    // Table
+    let y = 130;
+    doc.setTextColor(...navy);
+    doc.setFontSize(10);
+    doc.setFont('helvetica','bold');
+    doc.text(t.itemCol, 40, y);
+    doc.text(t.qtyCol, pageW - 100, y, {align:'left'});
+    y += 8;
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1);
+    doc.line(40, y, pageW - 40, y);
+    y += 18;
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(12);
+    for(const k of summary.keys){
+      const item = summary.data[k];
+      if(y > 760){ doc.addPage(); y = 60; }
+      doc.setTextColor(...navy);
+      doc.text(translateLabel(k, item.label, lang), 40, y);
+      doc.setTextColor(...teal);
+      doc.setFont('helvetica','bold');
+      doc.text(String(item.qty), pageW - 100, y);
+      doc.setFont('helvetica','normal');
+      doc.setDrawColor(...lineGray);
+      doc.setLineWidth(0.5);
+      doc.line(40, y + 8, pageW - 40, y + 8);
+      y += 26;
+    }
+
+    y += 6;
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1.4);
+    doc.line(40, y, pageW - 40, y);
+    y += 22;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13);
+    doc.setTextColor(...navy);
+    doc.text(t.grandTotal, 40, y);
+    doc.text(String(summary.total) + ' ' + t.pcs, pageW - 100, y);
+    y += 20;
+
+    // Room-by-room breakdown, so the document is ready to hand to the hotel or the laundry
+    const day = await loadDay(dateKey);
+    const rooms = {};
+    day.entries.forEach(e=>{
+      const room = e.room || t.noRoom;
+      if(!rooms[room]) rooms[room] = {housekeeper:'', total:0};
+      if(e.housekeeper) rooms[room].housekeeper = e.housekeeper;
+      rooms[room].total += e.qty;
+    });
+    const roomNames = Object.keys(rooms).sort((a,b)=> a.localeCompare(b,'es',{numeric:true}));
+
+    if(roomNames.length){
+      if(y > 700){ doc.addPage(); y = 60; }
+      y += 20;
+      doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...navy);
+      doc.text(t.roomBreakdown, 40, y);
+      y += 8;
+      doc.setDrawColor(...navy); doc.setLineWidth(1);
+      doc.line(40, y, pageW - 40, y);
+      y += 18;
+      doc.setFontSize(10);
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(...navy);
+      doc.text(t.roomCol, 40, y);
+      doc.text(t.housekeeperCol, 160, y);
+      doc.text(t.totalCol, pageW - 100, y);
+      y += 14;
+      doc.setFont('helvetica','normal');
+      for(const room of roomNames){
+        if(y > 760){ doc.addPage(); y = 60; }
+        const r = rooms[room];
+        doc.setTextColor(...navy);
+        doc.text(String(room), 40, y);
+        doc.text(r.housekeeper || '—', 160, y);
+        doc.setTextColor(...teal);
+        doc.setFont('helvetica','bold');
+        doc.text(String(r.total) + ' ' + t.pcs, pageW - 100, y);
+        doc.setFont('helvetica','normal');
+        doc.setDrawColor(...lineGray);
+        doc.setLineWidth(0.5);
+        doc.line(40, y + 6, pageW - 40, y + 6);
+        y += 20;
+      }
+    }
+
+    // Signature block, for formal hand-off: Houseman/Supervisor delivers, Laundry receives.
+    // If the person actually signed on-screen, that drawing is embedded as a real image
+    // above the line; otherwise it stays a blank line for a pen signature on paper.
+    const sigW = 190, sigH = 55;
+    if(y > 700 - sigH){ doc.addPage(); y = 60; }
+    y += 34 + sigH;
+    const leftX = 40, rightX = pageW - 250;
+
+    const deliverSig = signaturePads.deliver && signaturePads.deliver.dataUrl();
+    const receiveSig = signaturePads.receive && signaturePads.receive.dataUrl();
+    if(deliverSig){ try{ doc.addImage(deliverSig, 'PNG', leftX, y - sigH, sigW, sigH); }catch(e){} }
+    if(receiveSig){ try{ doc.addImage(receiveSig, 'PNG', rightX, y - sigH, sigW, sigH); }catch(e){} }
+
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(0.8);
+    doc.line(leftX, y, leftX + 210, y);
+    doc.line(rightX, y, rightX + 210, y);
+    y += 14;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...navy);
+    doc.text(t.deliveredBy, leftX, y);
+    doc.text(t.receivedBy, rightX, y);
+    y += 24;
+    doc.setFontSize(8);
+    doc.setTextColor(120,120,120);
+    doc.text(t.dateTimeLine, leftX, y);
+    doc.text(t.dateTimeLine, rightX, y);
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text(t.footer(COMPANY_NAME), 40, 810);
+
+    doc.save('reporte-lenceria-' + dateKey + '-' + lang + '.pdf');
+  }
+
+  $('excelBtn').addEventListener('click', async ()=>{
+    const btn = $('excelBtn');
+    const day = await loadDay(viewDate);
+    if(!day.entries.length){ showToast('Nada que exportar'); return; }
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Generando…';
+    try{
+      exportExcel(day, viewDate);
+      showToast('Excel generado');
+    }catch(e){
+      showToast('Error Excel: ' + (e && e.message ? e.message : 'desconocido'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  });
+
+  function exportExcel(day, dateKey){
+    if(typeof XLSX === 'undefined'){
+      throw new Error('La librería XLSX no cargó (revisa tu conexión a internet — este archivo la descarga de cdnjs.cloudflare.com)');
+    }
+    // Group raw entries by room, matching the standard workbook layout
+    const rooms = {};
+    const extraKeysSeen = new Set();
+    const standardKeys = STANDARD_ITEMS.map(normalizeKey);
+
+    day.entries.forEach(e=>{
+      const room = e.room || 'Sin habitación';
+      if(!rooms[room]) rooms[room] = { housekeeper:'', items:{} };
+      if(e.housekeeper) rooms[room].housekeeper = e.housekeeper;
+      rooms[room].items[e.key] = (rooms[room].items[e.key] || 0) + e.qty;
+      if(!standardKeys.includes(e.key)) extraKeysSeen.add(e.key);
+    });
+
+    // label lookup for extra (non-standard) items
+    const labelByKey = {};
+    day.entries.forEach(e => { labelByKey[e.key] = e.label; });
+    const extraItems = Array.from(extraKeysSeen).sort();
+
+    const headers = ['Fecha','Housekeeping','Habitación', ...STANDARD_ITEMS,
+      ...extraItems.map(k => labelByKey[k]), 'Total Habitación'];
+    const numCols = headers.length;
+
+    // Title rows, matching the company's official workbook layout
+    const aoa = [
+      ['REPORTE DIARIO DE LENCERÍA POR HABITACIÓN'],
+      [COMPANY_NAME + ' · Housekeeping · Control de blancos — ' + formatDate(dateKey)],
+      [],
+      headers
+    ];
+    const colTotals = new Array(STANDARD_ITEMS.length + extraItems.length).fill(0);
+    const roomNames = Object.keys(rooms).sort((a,b)=> a.localeCompare(b, 'es', {numeric:true}));
+
+    for(const room of roomNames){
+      const r = rooms[room];
+      const row = [formatDate(dateKey), r.housekeeper, room];
+      let rowTotal = 0;
+      STANDARD_ITEMS.forEach((label, i)=>{
+        const key = normalizeKey(label);
+        const qty = r.items[key] || 0;
+        row.push(qty);
+        colTotals[i] += qty;
+        rowTotal += qty;
+      });
+      extraItems.forEach((key, i)=>{
+        const qty = r.items[key] || 0;
+        row.push(qty);
+        colTotals[STANDARD_ITEMS.length + i] += qty;
+        rowTotal += qty;
+      });
+      row.push(rowTotal);
+      aoa.push(row);
+    }
+
+    const grandTotal = colTotals.reduce((a,b)=>a+b, 0);
+    aoa.push(['', '', 'TOTAL DEL DÍA', ...colTotals, grandTotal]);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [
+      {wch:12}, {wch:18}, {wch:12},
+      ...STANDARD_ITEMS.map(()=>({wch:13})),
+      ...extraItems.map(()=>({wch:13})),
+      {wch:15}
+    ];
+    ws['!merges'] = [
+      {s:{r:0,c:0}, e:{r:0,c:numCols-1}},
+      {s:{r:1,c:0}, e:{r:1,c:numCols-1}}
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Reporte Diario');
+
+    // "Cómo usar" sheet, matching the company's official workbook
+    const howTo = [
+      ['Cómo usar este reporte'],
+      [],
+      ['1.', 'Cada fila es una habitación, agrupada automáticamente a partir de lo que registraste en la app.'],
+      [],
+      ['2.', 'La columna "Total Habitación" y la fila "TOTAL DEL DÍA" ya vienen calculadas — no hace falta sumarlas a mano.'],
+      [],
+      ['3.', 'Si una habitación no fue registrada en la app, no aparecerá en este archivo. Verifica en "Historial reciente" que el día esté completo antes de exportar.']
+    ];
+    const wsHow = XLSX.utils.aoa_to_sheet(howTo);
+    wsHow['!cols'] = [{wch:4}, {wch:90}];
+    XLSX.utils.book_append_sheet(wb, wsHow, 'Cómo usar');
+
+    XLSX.writeFile(wb, `reporte-lenceria-${dateKey}.xlsx`);
+  }
+
+  $('clearBtn').addEventListener('click', async ()=>{
+    if(!confirm('¿Vaciar todos los artículos de este día?')) return;
+    await saveDay(viewDate, {agg:{}, entries:[]});
+    renderLedger();
+    renderHistory();
+  });
+
+  $('dateSel').addEventListener('change', (e)=>{
+    viewDate = e.target.value || todayStr();
+    renderLedger();
+  });
+
+  renderStandardGrid();
+  try{ initSignaturePads(); }catch(e){ /* signature pads unsupported — rest of the app still works */ }
+  renderLedger();
+  renderHistory();
+})();
+</script>
+</body>
+</html>
