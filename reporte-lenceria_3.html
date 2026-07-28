@@ -227,6 +227,78 @@
     background:none; border:none; color:var(--navy-soft); text-decoration:underline;
     font-size:12px; padding:2px 0;
   }
+
+  .tab-switch{ display:flex; gap:8px; margin:14px 16px 0; }
+  .tab-switch button{
+    flex:1; padding:12px; border-radius:10px; border:1px solid var(--line);
+    background:#fff; color:var(--navy-soft); font-weight:700; font-size:14px; font-family:inherit;
+  }
+  .tab-switch button.active{ background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  #recepLedger th, #recepLedger td{ font-size:12.5px; padding:8px 4px; text-align:center; }
+  #recepLedger th:first-child, #recepLedger td:first-child{ text-align:left; }
+  #recepLedger tfoot td{ font-weight:800; }
+
+  .recep-row{ padding:12px 0; border-bottom:1px solid var(--line); }
+  .recep-row:last-child{ border-bottom:none; }
+  .recep-row .recep-name{ font-weight:700; color:var(--navy); margin-bottom:2px; font-size:15px; }
+  .recep-received-badge{
+    display:inline-block; font-size:11px; font-weight:800; color:var(--teal);
+    background:#EAF2F1; border-radius:6px; padding:2px 7px; margin-left:6px; vertical-align:middle;
+  }
+  .recep-row .recep-sent{ font-size:12px; color:var(--navy-soft); margin-bottom:8px; }
+  .recep-row .recep-counters{ display:flex; gap:8px; margin-bottom:6px; }
+  .recep-counter{
+    flex:1; display:flex; align-items:center; justify-content:space-between;
+    border:1px solid var(--line); border-radius:8px; padding:4px 6px;
+  }
+  .recep-counter .rc-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+  .recep-counter.limpio .rc-label{ color:#2F7D5C; }
+  .recep-counter.manchado .rc-label{ color:#B03A2E; }
+  .recep-counter button{ background:none; border:none; font-size:17px; font-weight:700; padding:2px 6px; color:var(--navy); }
+  .recep-counter .rc-qty-input{
+    font-family:ui-monospace, monospace; font-weight:700; width:38px; text-align:center;
+    border:1px solid var(--line); border-radius:6px; padding:3px 0; font-size:14px; color:var(--navy);
+    background:#fff;
+  }
+  .recep-faltante{ font-size:12px; font-weight:700; }
+  .recep-faltante.ok{ color:#2F7D5C; }
+  .recep-faltante.bad{ color:#B03A2E; }
+  .recep-faltante.neutral{ color:#9AA2B1; }
+
+  .recep-grid-summary{
+    position:sticky; top:0; z-index:5; display:flex; gap:8px; margin:0 0 12px;
+    background:#fff; padding:8px 0 4px;
+  }
+  .recep-grid-summary .stat{
+    flex:1; text-align:center; border-radius:8px; padding:8px 4px; border:1px solid var(--line);
+  }
+  .recep-grid-summary .stat .n{ font-size:18px; font-weight:800; font-family:ui-monospace, monospace; display:block; }
+  .recep-grid-summary .stat .lbl{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--navy-soft); }
+  .recep-grid-summary .stat.clean{ border-color:#BFE0CE; background:#F1FAF4; }
+  .recep-grid-summary .stat.clean .n{ color:#2F7D5C; }
+  .recep-grid-summary .stat.stained{ border-color:#F1C6BE; background:#FDF3F1; }
+  .recep-grid-summary .stat.stained .n{ color:#B03A2E; }
+  .recep-grid-summary .stat.missing{ border-color:#E4D9B8; background:#FBF6E8; }
+  .recep-grid-summary .stat.missing .n{ color:#8A6D1F; }
+
+  .recep-photo-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:12px; }
+  .recep-photo-grid .photo-thumb{ position:relative; border-radius:8px; overflow:hidden; aspect-ratio:1; background:var(--cream); }
+  .recep-photo-grid .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .recep-photo-grid .photo-thumb button{
+    position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
+    background:rgba(28,43,74,.85); color:#fff; border:none; font-size:12px; line-height:1;
+  }
+
+  #recepAnalysisTable, #recepHistAnalysisTable{ font-size:12.5px; }
+  #recepAnalysisTable th, #recepAnalysisTable td,
+  #recepHistAnalysisTable th, #recepHistAnalysisTable td{
+    padding:6px 4px; text-align:center; border-bottom:1px solid var(--line);
+  }
+  #recepAnalysisTable th:first-child, #recepAnalysisTable td:first-child,
+  #recepHistAnalysisTable th:first-child, #recepHistAnalysisTable td:first-child{
+    text-align:left;
+  }
 </style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -242,7 +314,12 @@
     <div class="save-status" id="saveStatus">Listo</div>
   </header>
 
-  <section>
+  <div class="tab-switch">
+    <button type="button" id="tabBtnEnvio" class="active">📤 Envío</button>
+    <button type="button" id="tabBtnRecepcion">📥 Recepción</button>
+  </div>
+
+  <section id="tabEnvio">
 
     <div class="card">
       <h2>Pegar de WhatsApp / Notas <span class="tag">Auto</span></h2>
@@ -331,6 +408,116 @@
     </div>
 
   </section>
+
+  <section id="tabRecepcion" style="display:none;">
+
+    <div class="card">
+      <h2>Recepción de hoy <span class="tag">Lavandería</span></h2>
+      <div class="hint" style="margin:0 0 8px;">Se compara contra lo que enviaste el día anterior. Cambia la fecha si este lote corresponde a otro día.</div>
+      <div class="row" style="margin-top:0;">
+        <input type="date" id="dateSelRecep" style="flex:1;">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Limpio vs. Manchado/Dañado <span class="tag">1 toque</span></h2>
+      <div class="hint" style="margin:0 0 10px;">Por cada artículo: cuánto llegó limpio y cuánto llegó manchado o dañado. El faltante se calcula solo.</div>
+      <div class="recep-grid-summary" id="recepGridSummary"></div>
+      <div id="recepGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Evidencia fotográfica <span class="tag">Manchado/Dañado</span></h2>
+      <div class="hint" style="margin:0 0 10px;">Fotos del lote dañado, útiles como evidencia ante la lavandería.</div>
+      <input type="file" id="recepPhotoInput" accept="image/*" capture="environment" multiple style="display:none;">
+      <button type="button" class="btn-gold" id="recepPhotoBtn" style="width:100%;">+ Agregar foto</button>
+      <div class="recep-photo-grid" id="recepPhotoGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="recepTableTitle">Total de recepción</h2>
+      <table id="recepLedger">
+        <thead>
+          <tr><th>Artículo</th><th>Enviado</th><th>Limpio</th><th>Manch.</th><th>Falt.</th></tr>
+        </thead>
+        <tbody id="recepLedgerBody"></tbody>
+        <tfoot>
+          <tr>
+            <td class="item-name">Totales</td>
+            <td id="recepTotalSent">0</td>
+            <td id="recepTotalClean">0</td>
+            <td id="recepTotalStained">0</td>
+            <td id="recepTotalMissing">0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Análisis del día <span class="tag">Auto + editable</span></h2>
+      <div class="hint" style="margin:0 0 10px;">Generado automáticamente a partir de lo enviado y recibido. Puedes editarlo, borrar partes o agregar tus propias notas — tus cambios se guardan solos.</div>
+      <div id="recepAnalysisMetrics"></div>
+      <textarea id="recepAnalysisNotes" rows="11" style="width:100%; margin-top:10px; border:1px solid var(--line); border-radius:8px; padding:10px; font-family:inherit; font-size:13px; line-height:1.5; color:var(--navy); resize:vertical;"></textarea>
+      <div class="actions" style="margin-top:8px;">
+        <button type="button" class="btn-ghost" id="recepAnalysisRegen">🔄 Regenerar análisis automático</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sig-block">
+        <div class="sig-label">Firma — Entregado por (Lavandería)</div>
+        <input type="text" id="recepDeliverName" placeholder="Nombre de quien entrega / Name of person delivering" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy); margin-bottom:8px;">
+        <div class="sig-pad-wrap" id="sigWrapRecepDeliver">
+          <canvas class="sig-canvas" id="sigRecepDeliver"></canvas>
+          <span class="sig-hint">Firma aquí con el dedo</span>
+        </div>
+        <div class="sig-actions"><button type="button" data-target="sigRecepDeliver">Borrar firma</button></div>
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-label">Firma — Recibido por (Houseman / Supervisor)</div>
+        <input type="text" id="recepReceiveName" placeholder="Nombre de quien recibe / Name of person receiving" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy); margin-bottom:8px;">
+        <div class="sig-pad-wrap" id="sigWrapRecepReceive">
+          <canvas class="sig-canvas" id="sigRecepReceive"></canvas>
+          <span class="sig-hint">Firma aquí con el dedo</span>
+        </div>
+        <div class="sig-actions"><button type="button" data-target="sigRecepReceive">Borrar firma</button></div>
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+        <select id="pdfLangRecep" style="flex:1; border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; font-family:inherit; background:#fff; color:var(--navy);">
+          <option value="es">PDF en Español</option>
+          <option value="en">PDF in English</option>
+        </select>
+      </div>
+      <div class="actions">
+        <a class="btn-wa" id="waBtnRecep" href="#" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+        <button class="btn-gold" id="pdfBtnRecep">Exportar PDF</button>
+      </div>
+      <div class="actions" style="margin-top:8px;">
+        <button class="btn-excel" id="excelBtnRecep">Exportar Excel</button>
+      </div>
+      <div class="actions" style="margin-top:8px;">
+        <button class="btn-ghost" id="clearBtnRecep" style="color:var(--danger); border-color:#E7C9C2;">Vaciar día</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Análisis histórico <span class="tag">Últimos 14 días · Auto + editable</span></h2>
+      <div class="hint" style="margin:0 0 10px;">Compara envíos vs. recepciones de los últimos días, con el % de manchado/faltante por artículo y posibles causas. Edítalo o enriquécelo libremente — se guarda solo.</div>
+      <div id="recepHistAnalysisMetrics"></div>
+      <textarea id="recepHistAnalysisNotes" rows="12" style="width:100%; margin-top:10px; border:1px solid var(--line); border-radius:8px; padding:10px; font-family:inherit; font-size:13px; line-height:1.5; color:var(--navy); resize:vertical;"></textarea>
+      <div class="actions" style="margin-top:8px;">
+        <button type="button" class="btn-ghost" id="recepHistAnalysisRegen">🔄 Regenerar análisis automático</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Historial reciente</h2>
+      <div id="historyListRecep"><div class="empty">Sin reportes anteriores todavía.</div></div>
+    </div>
+
+  </section>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -365,7 +552,16 @@
       receivedBy: 'Recibido por: Lavandería',
       nameLabel: 'Nombre',
       dateTimeLine: 'Fecha y hora: _______________',
-      footer: (c)=> c + ' — Generado desde Reporte Diario de Lencería'
+      footer: (c)=> c + ' — Generado desde Reporte Diario de Lencería',
+      recepTitle: 'Reporte de Recepción de Lencería',
+      sentOn: 'Enviado el',
+      sentCol: 'ENVIADO',
+      cleanCol: 'LIMPIO',
+      stainedCol: 'MANCH./DAÑ.',
+      missingCol: 'FALTANTE',
+      photosTitle: 'EVIDENCIA FOTOGRÁFICA',
+      deliveredByLaundry: 'Entregado por: Lavandería',
+      receivedByHouseman: 'Recibido por: Houseman / Supervisor'
     },
     en: {
       companyLine: (c)=> c.toUpperCase() + ' · HOUSEKEEPING',
@@ -384,7 +580,16 @@
       receivedBy: 'Received by: Laundry',
       nameLabel: 'Name',
       dateTimeLine: 'Date & time: _______________',
-      footer: (c)=> c + ' — Generated from Daily Laundry Report'
+      footer: (c)=> c + ' — Generated from Daily Laundry Report',
+      recepTitle: 'Laundry Return Report',
+      sentOn: 'Sent on',
+      sentCol: 'SENT',
+      cleanCol: 'CLEAN',
+      stainedCol: 'STAINED/DMG.',
+      missingCol: 'MISSING',
+      photosTitle: 'PHOTO EVIDENCE',
+      deliveredByLaundry: 'Delivered by: Laundry',
+      receivedByHouseman: 'Received by: Houseman / Supervisor'
     }
   };
 
@@ -467,7 +672,9 @@
   }
 
   let viewDate = todayStr();
+  let viewDateRecep = todayStr();
   $('dateSel').value = viewDate;
+  $('dateSelRecep').value = viewDateRecep;
 
   function showToast(msg){
     const t = $('toast');
@@ -486,7 +693,7 @@
     if(!ctx){
       // Extremely old/unsupported browser: degrade gracefully instead of
       // breaking the whole app — the report still works, just without a signature.
-      return { clear(){}, isSigned(){ return false; }, dataUrl(){ return null; } };
+      return { clear(){}, isSigned(){ return false; }, dataUrl(){ return null; }, resize(){} };
     }
     let dw = 0, dh = 0, drawing = false, signed = false;
 
@@ -540,17 +747,24 @@
         wrap.classList.remove('signed');
       },
       isSigned(){ return signed; },
-      dataUrl(){ return signed ? canvas.toDataURL('image/png') : null; }
+      dataUrl(){ return signed ? canvas.toDataURL('image/png') : null; },
+      resize
     };
   }
 
   function initSignaturePads(){
     signaturePads.deliver = makeSignaturePad('sigDeliver');
     signaturePads.receive = makeSignaturePad('sigReceive');
+    signaturePads.recepDeliver = makeSignaturePad('sigRecepDeliver');
+    signaturePads.recepReceive = makeSignaturePad('sigRecepReceive');
     document.querySelectorAll('.sig-actions button[data-target]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        const key = btn.dataset.target === 'sigDeliver' ? 'deliver' : 'receive';
-        signaturePads[key].clear();
+        const map = {
+          sigDeliver: 'deliver', sigReceive: 'receive',
+          sigRecepDeliver: 'recepDeliver', sigRecepReceive: 'recepReceive'
+        };
+        const key = map[btn.dataset.target];
+        if(key && signaturePads[key]) signaturePads[key].clear();
       });
     });
   }
@@ -576,29 +790,24 @@
     return localStorageWorks;
   }
 
-  async function loadDay(dateKey){
-    const fullKey = KEY_PREFIX + dateKey;
+  async function storageGetRaw(fullKey){
     // 1) Try the Claude-artifact storage bridge, if present (only exists inside claude.ai artifacts)
     if(window.storage && typeof window.storage.get === 'function'){
       try{
         const res = await window.storage.get(fullKey, false);
-        if(res){
-          const parsed = JSON.parse(res.value);
-          if(!parsed.agg && !parsed.entries) return {agg: parsed, entries: []};
-          return {agg: parsed.agg || {}, entries: parsed.entries || []};
-        }
+        if(res) return res.value;
       }catch(e){ /* fall through to localStorage/memory */ }
     }
     // 2) Real persistence for when this file runs as a normal web page (GitHub Pages, iPhone, etc.)
     if(testLocalStorage()){
       try{
         const raw = window.localStorage.getItem(fullKey);
-        if(raw) return JSON.parse(raw);
+        if(raw) return raw;
       }catch(e){ /* fall through to memory */ }
     }
     // 3) Last-resort in-memory only (lost on reload) — only reached if both above are unavailable
-    if(fullKey in memoryFallback) return JSON.parse(memoryFallback[fullKey]);
-    return {agg:{}, entries:[]};
+    if(fullKey in memoryFallback) return memoryFallback[fullKey];
+    return null;
   }
 
   function setSaveStatus(ok, detail){
@@ -617,9 +826,7 @@
     }
   }
 
-  async function saveDay(dateKey, day){
-    const fullKey = KEY_PREFIX + dateKey;
-    const json = JSON.stringify(day);
+  async function storageSetRaw(fullKey, json){
     // Always keep the in-memory copy up to date so the current session never loses data
     memoryFallback[fullKey] = json;
 
@@ -650,11 +857,11 @@
     return true;
   }
 
-  async function listAllDates(){
+  async function listKeysByPrefix(prefix){
     let keys = [];
     if(window.storage && typeof window.storage.list === 'function'){
       try{
-        const res = await window.storage.list(KEY_PREFIX, false);
+        const res = await window.storage.list(prefix, false);
         if(res && res.keys) keys = res.keys.slice();
       }catch(e){ /* fall through to localStorage/memory */ }
     }
@@ -662,14 +869,54 @@
       try{
         for(let i=0; i<window.localStorage.length; i++){
           const k = window.localStorage.key(i);
-          if(k && k.startsWith(KEY_PREFIX) && !keys.includes(k)) keys.push(k);
+          if(k && k.startsWith(prefix) && !keys.includes(k)) keys.push(k);
         }
       }catch(e){ /* fall through to memory */ }
     }
     Object.keys(memoryFallback).forEach(k=>{
-      if(k.startsWith(KEY_PREFIX) && !keys.includes(k)) keys.push(k);
+      if(k.startsWith(prefix) && !keys.includes(k)) keys.push(k);
     });
-    return keys.map(k => k.replace(KEY_PREFIX,'')).sort().reverse();
+    return keys.map(k => k.replace(prefix,'')).sort().reverse();
+  }
+
+  // ── Envío (outgoing to laundry) day storage ──
+  async function loadDay(dateKey){
+    const raw = await storageGetRaw(KEY_PREFIX + dateKey);
+    if(!raw) return {agg:{}, entries:[]};
+    try{
+      const parsed = JSON.parse(raw);
+      if(!parsed.agg && !parsed.entries) return {agg: parsed, entries: []};
+      return {agg: parsed.agg || {}, entries: parsed.entries || []};
+    }catch(e){ return {agg:{}, entries:[]}; }
+  }
+  async function saveDay(dateKey, day){
+    return storageSetRaw(KEY_PREFIX + dateKey, JSON.stringify(day));
+  }
+  async function listAllDates(){
+    return listKeysByPrefix(KEY_PREFIX);
+  }
+
+  // ── Recepción (return from laundry) day storage ──
+  const REC_PREFIX = 'linenrecep:';
+  async function loadRecepDay(dateKey){
+    const raw = await storageGetRaw(REC_PREFIX + dateKey);
+    if(!raw) return {items:{}, photos:[]};
+    try{
+      const parsed = JSON.parse(raw);
+      return {items: parsed.items || {}, photos: parsed.photos || []};
+    }catch(e){ return {items:{}, photos:[]}; }
+  }
+  async function saveRecepDay(dateKey, data){
+    return storageSetRaw(REC_PREFIX + dateKey, JSON.stringify(data));
+  }
+  async function listRecepDates(){
+    return listKeysByPrefix(REC_PREFIX);
+  }
+
+  function addDays(dateKey, delta){
+    const d = new Date(dateKey + 'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    return d.toISOString().slice(0,10);
   }
 
   function titleCase(s){
@@ -1204,6 +1451,817 @@
 
     XLSX.writeFile(wb, `reporte-lenceria-${dateKey}.xlsx`);
   }
+
+  // ══════════════════════════════════════════════════════════════
+  // RECEPCIÓN (linen returning from the laundry)
+  // ══════════════════════════════════════════════════════════════
+
+  async function computeRecepRows(dateKey){
+    const prevDateKey = addDays(dateKey, -1);
+    const sentDay = await loadDay(prevDateKey);
+    const recepDay = await loadRecepDay(dateKey);
+    const rows = STANDARD_ITEMS.map(label=>{
+      const key = normalizeKey(label);
+      const sent = (sentDay.agg[key] && sentDay.agg[key].qty) || 0;
+      const clean = (recepDay.items[key] && recepDay.items[key].clean) || 0;
+      const stained = (recepDay.items[key] && recepDay.items[key].stained) || 0;
+      const missing = Math.max(0, sent - clean - stained);
+      return {key, label, sent, clean, stained, missing};
+    });
+    const totals = rows.reduce((acc,r)=>{
+      acc.sent += r.sent; acc.clean += r.clean; acc.stained += r.stained; acc.missing += r.missing;
+      return acc;
+    }, {sent:0, clean:0, stained:0, missing:0});
+    return {prevDateKey, recepDay, rows, totals};
+  }
+
+  // Serialize all clean/stained mutations so rapid taps never race each other
+  // (without this, two quick taps could each read the old value and one write
+  // would silently overwrite the other — this is what "no suma" looked like).
+  let recepMutationQueue = Promise.resolve();
+  function queueRecepMutation(fn){
+    recepMutationQueue = recepMutationQueue.then(fn, fn);
+    return recepMutationQueue;
+  }
+
+  async function setRecepCount(key, field, value){
+    await queueRecepMutation(async ()=>{
+      const recepDay = await loadRecepDay(viewDateRecep);
+      if(!recepDay.items[key]) recepDay.items[key] = {clean:0, stained:0};
+      const n = Math.round(Number(value));
+      recepDay.items[key][field] = (Number.isFinite(n) && n >= 0) ? n : 0;
+      await saveRecepDay(viewDateRecep, recepDay);
+    });
+    await renderRecepGrid();
+  }
+
+  async function updateRecepCount(key, field, delta){
+    await queueRecepMutation(async ()=>{
+      const recepDay = await loadRecepDay(viewDateRecep);
+      if(!recepDay.items[key]) recepDay.items[key] = {clean:0, stained:0};
+      const current = recepDay.items[key][field] || 0;
+      recepDay.items[key][field] = Math.max(0, current + delta);
+      await saveRecepDay(viewDateRecep, recepDay);
+    });
+    await renderRecepGrid();
+  }
+
+  async function renderRecepGrid(){
+    const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+
+    const summaryEl = $('recepGridSummary');
+    if(summaryEl){
+      summaryEl.innerHTML = `
+        <div class="stat clean"><span class="n">${totals.clean}</span><span class="lbl">Limpio</span></div>
+        <div class="stat stained"><span class="n">${totals.stained}</span><span class="lbl">Manchado</span></div>
+        <div class="stat missing"><span class="n">${totals.missing}</span><span class="lbl">Faltante</span></div>
+      `;
+    }
+
+    const grid = $('recepGrid');
+    grid.innerHTML = '';
+    rows.forEach(r=>{
+      const row = document.createElement('div');
+      row.className = 'recep-row';
+      const missingClass = r.sent === 0 ? 'neutral' : (r.missing > 0 ? 'bad' : 'ok');
+      const missingText = r.sent === 0 ? 'Sin envío registrado' : (r.missing > 0 ? `Faltan ${r.missing}` : 'Completo');
+      const received = r.clean + r.stained;
+      row.innerHTML = `
+        <div class="recep-name">${r.label}${received > 0 ? ` <span class="recep-received-badge">Recibido: ${received}</span>` : ''}</div>
+        <div class="recep-sent">Enviado el ${formatDate(prevDateKey)}: <strong>${r.sent}</strong></div>
+        <div class="recep-counters">
+          <div class="recep-counter limpio">
+            <button type="button" class="rc-minus" data-field="clean">−</button>
+            <span class="rc-label">Limpio</span>
+            <input type="number" inputmode="numeric" min="0" class="rc-qty-input" data-field="clean" value="${r.clean}">
+            <button type="button" class="rc-plus" data-field="clean">+</button>
+          </div>
+          <div class="recep-counter manchado">
+            <button type="button" class="rc-minus" data-field="stained">−</button>
+            <span class="rc-label">Manch.</span>
+            <input type="number" inputmode="numeric" min="0" class="rc-qty-input" data-field="stained" value="${r.stained}">
+            <button type="button" class="rc-plus" data-field="stained">+</button>
+          </div>
+        </div>
+        <div class="recep-faltante ${missingClass}">${missingText}</div>
+      `;
+      row.querySelectorAll('button[data-field]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          btn.disabled = true;
+          const delta = btn.classList.contains('rc-plus') ? 1 : -1;
+          await updateRecepCount(r.key, btn.dataset.field, delta);
+        });
+      });
+      row.querySelectorAll('.rc-qty-input').forEach(inp=>{
+        inp.addEventListener('change', async ()=>{
+          await setRecepCount(r.key, inp.dataset.field, inp.value);
+        });
+      });
+      grid.appendChild(row);
+    });
+    await renderRecepLedger();
+  }
+
+  async function renderRecepLedger(){
+    const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+    const isToday = viewDateRecep === todayStr();
+    $('recepTableTitle').textContent =
+      (isToday ? 'Recepción de hoy' : 'Recepción del ' + formatDate(viewDateRecep)) +
+      ' — enviado el ' + formatDate(prevDateKey);
+
+    const body = $('recepLedgerBody');
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+    if(nonEmpty.length === 0){
+      body.innerHTML = '<tr><td colspan="5" class="empty" style="text-align:center; padding:16px;">Sin datos de recepción para este día.</td></tr>';
+    } else {
+      body.innerHTML = nonEmpty.map(r=>{
+        const style = r.missing > 0 ? 'style="color:#B03A2E; font-weight:800;"' : '';
+        return `<tr><td style="text-align:left;">${r.label}</td><td>${r.sent}</td><td>${r.clean}</td><td>${r.stained}</td><td ${style}>${r.missing}</td></tr>`;
+      }).join('');
+    }
+    $('recepTotalSent').textContent = totals.sent;
+    $('recepTotalClean').textContent = totals.clean;
+    $('recepTotalStained').textContent = totals.stained;
+    $('recepTotalMissing').textContent = totals.missing;
+    $('recepTotalMissing').style.color = totals.missing > 0 ? '#B03A2E' : '';
+
+    await renderRecepPhotos();
+    await refreshWaLinkRecep();
+    await renderRecepAnalysis();
+  }
+
+  function generateRecepAnalysisText(dateKey, prevDateKey, rows, totals){
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+    const lines = [];
+    lines.push(`ANÁLISIS — Recepción del ${formatDate(dateKey)} (enviado el ${formatDate(prevDateKey)})`);
+    lines.push('');
+
+    if(nonEmpty.length === 0){
+      lines.push('Todavía no hay datos capturados para este día. Registra cantidades de Limpio/Manchado arriba, o completa el reporte de Envío del día anterior, para generar el análisis automáticamente.');
+      return lines.join('\n');
+    }
+
+    const noSentData = totals.sent === 0;
+    if(noSentData){
+      lines.push(`⚠ No hay reporte de Envío guardado para el ${formatDate(prevDateKey)}, así que no se puede calcular el % de faltante todavía. Completa ese reporte de Envío para un análisis completo. Mientras tanto, esto es lo recibido hoy:`);
+      lines.push('');
+    }
+
+    const pctStained = totals.sent ? (totals.stained / totals.sent * 100) : null;
+    const pctMissing = totals.sent ? (totals.missing / totals.sent * 100) : null;
+    const totalReceived = totals.clean + totals.stained;
+
+    if(noSentData){
+      lines.push(`Total recibido: ${totalReceived} (Limpio: ${totals.clean} | Manchado/dañado: ${totals.stained})`);
+    } else {
+      lines.push(`Total enviado: ${totals.sent} | Limpio: ${totals.clean} | Manchado/dañado: ${totals.stained} (${pctStained.toFixed(1)}%) | Faltante: ${totals.missing} (${pctMissing.toFixed(1)}%)`);
+    }
+    lines.push('');
+
+    const withPct = nonEmpty.map(r=>{
+      const pctS = r.sent ? (r.stained / r.sent * 100) : null;
+      const pctM = r.sent ? (r.missing / r.sent * 100) : null;
+      return Object.assign({}, r, {pctS, pctM});
+    });
+
+    const worst = withPct.filter(r=> (r.pctS !== null && r.pctS >= 10) || (r.pctM !== null && r.pctM >= 5))
+      .sort((a,b)=> ((b.pctS||0)+(b.pctM||0)) - ((a.pctS||0)+(a.pctM||0)));
+    if(worst.length){
+      lines.push('Artículos con mayor tasa de manchado/faltante:');
+      worst.slice(0,5).forEach(r=>{
+        lines.push(`- ${r.label}: manchado ${r.pctS.toFixed(1)}% (${r.stained}/${r.sent}), faltante ${r.pctM.toFixed(1)}% (${r.missing}/${r.sent})`);
+      });
+      lines.push('');
+    }
+
+    const withoutSent = withPct.filter(r=> r.sent === 0 && (r.clean > 0 || r.stained > 0));
+    if(withoutSent.length){
+      lines.push('Recibido sin envío registrado (no se puede calcular %):');
+      withoutSent.forEach(r=> lines.push(`- ${r.label}: Limpio ${r.clean}, Manchado/dañado ${r.stained}`));
+      lines.push('');
+    }
+
+    lines.push('Posibles causas:');
+    let anyCause = false;
+    if(pctMissing !== null && pctMissing >= 5){
+      lines.push('- El faltante general supera el 5% de lo enviado: revisar el proceso de conteo al momento de la recepción y confirmar con la lavandería si hay piezas pendientes de un lote anterior.');
+      anyCause = true;
+    } else if(pctMissing !== null && pctMissing > 0){
+      lines.push('- Faltante bajo pero presente: puede tratarse de piezas aún en proceso en la lavandería más que pérdida real; confirmar en el próximo envío.');
+      anyCause = true;
+    }
+    if(pctStained !== null && pctStained >= 10){
+      lines.push('- El nivel de manchado/daño es alto: revisar con la lavandería su proceso de lavado (temperatura, detergente, separación de blancos) o el estado de la ropa antes de enviarla.');
+      anyCause = true;
+    }
+    const severeItems = worst.filter(r=> r.pctS !== null && r.pctS >= 15);
+    if(severeItems.length){
+      const names = severeItems.map(r=> r.label).join(', ');
+      lines.push(`- El daño se concentra en artículos específicos (${names}): podría indicar un problema puntual de manejo o desgaste en esas líneas, no un problema general de la lavandería.`);
+      anyCause = true;
+    }
+    if(noSentData && totals.stained > 0){
+      lines.push('- Hay piezas manchadas/dañadas recibidas pero sin un envío registrado para comparar — completa el reporte de Envío del día anterior para poder calcular tasas reales de daño y faltante.');
+      anyCause = true;
+    }
+    if(!anyCause && !noSentData){
+      lines.push('- Sin discrepancias: la recepción coincide completamente con lo enviado.');
+    }
+    lines.push('');
+    lines.push('Nota: este análisis es generado automáticamente a partir de los datos capturados. Puedes editarlo, agregar contexto o corregirlo — tus cambios quedan guardados y ya no se sobrescriben solos una vez editados.');
+    return lines.join('\n');
+  }
+
+  async function renderRecepAnalysis(){
+    const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+    const recepDay = await loadRecepDay(viewDateRecep);
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+
+    const metricsEl = $('recepAnalysisMetrics');
+    if(nonEmpty.length === 0){
+      metricsEl.innerHTML = '<div class="empty">Sin datos suficientes todavía para analizar.</div>';
+    } else {
+      const withPct = nonEmpty.map(r=>{
+        const pctS = r.sent ? (r.stained / r.sent * 100) : 0;
+        const pctM = r.sent ? (r.missing / r.sent * 100) : 0;
+        return Object.assign({}, r, {pctS, pctM});
+      }).sort((a,b)=> (b.pctS + b.pctM) - (a.pctS + a.pctM));
+      const rowsHtml = withPct.map(r=>{
+        const style = (r.pctS >= 10 || r.pctM >= 5) ? 'style="color:#B03A2E; font-weight:700;"' : '';
+        return `<tr ${style}><td>${r.label}</td><td>${r.pctS.toFixed(1)}%</td><td>${r.pctM.toFixed(1)}%</td></tr>`;
+      }).join('');
+      metricsEl.innerHTML = `<table id="recepAnalysisTable"><thead><tr><th>Artículo</th><th>% Manchado</th><th>% Faltante</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    }
+
+    // Only skip regeneration if the person actually edited the text themselves.
+    // Previously any saved text (even an auto-generated placeholder) was treated
+    // as "final", so the analysis never updated as new data came in — that was
+    // the "no realiza análisis" bug. Now it keeps regenerating until edited.
+    const notesEl = $('recepAnalysisNotes');
+    if(recepDay.analysisEdited && recepDay.analysisNotes && recepDay.analysisNotes.trim()){
+      notesEl.value = recepDay.analysisNotes;
+    } else {
+      const generated = generateRecepAnalysisText(viewDateRecep, prevDateKey, rows, totals);
+      notesEl.value = generated;
+      recepDay.analysisNotes = generated;
+      recepDay.analysisEdited = false;
+      await saveRecepDay(viewDateRecep, recepDay);
+    }
+  }
+
+  let recepAnalysisSaveTimer = null;
+  $('recepAnalysisNotes').addEventListener('input', ()=>{
+    clearTimeout(recepAnalysisSaveTimer);
+    recepAnalysisSaveTimer = setTimeout(async ()=>{
+      const recepDay = await loadRecepDay(viewDateRecep);
+      recepDay.analysisNotes = $('recepAnalysisNotes').value;
+      recepDay.analysisEdited = true;
+      await saveRecepDay(viewDateRecep, recepDay);
+    }, 600);
+  });
+
+  $('recepAnalysisRegen').addEventListener('click', async ()=>{
+    if(!confirm('Esto reemplaza el texto actual con un análisis generado automáticamente. ¿Continuar?')) return;
+    const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+    const generated = generateRecepAnalysisText(viewDateRecep, prevDateKey, rows, totals);
+    $('recepAnalysisNotes').value = generated;
+    const recepDay = await loadRecepDay(viewDateRecep);
+    recepDay.analysisNotes = generated;
+    recepDay.analysisEdited = false;
+    await saveRecepDay(viewDateRecep, recepDay);
+    showToast('Análisis regenerado');
+  });
+
+  // ── Historical (multi-day) reconciliation analysis ──
+  const SUMMARY_NOTES_KEY = 'linenrecep_summary_notes';
+  const SUMMARY_EDITED_KEY = 'linenrecep_summary_edited';
+  async function loadSummaryNotes(){
+    const raw = await storageGetRaw(SUMMARY_NOTES_KEY);
+    return raw || '';
+  }
+  async function saveSummaryNotes(text, edited){
+    await storageSetRaw(SUMMARY_EDITED_KEY, edited ? '1' : '0');
+    return storageSetRaw(SUMMARY_NOTES_KEY, text);
+  }
+  async function isSummaryEdited(){
+    const raw = await storageGetRaw(SUMMARY_EDITED_KEY);
+    return raw === '1';
+  }
+
+  async function computeRecepHistoryAggregate(days){
+    days = days || 14;
+    const dates = await listRecepDates();
+    const recentDates = dates.slice(0, days);
+    const perItem = {};
+    for(const d of recentDates){
+      const { rows } = await computeRecepRows(d);
+      rows.forEach(r=>{
+        if(!perItem[r.key]) perItem[r.key] = {label: r.label, sent:0, clean:0, stained:0};
+        perItem[r.key].sent += r.sent;
+        perItem[r.key].clean += r.clean;
+        perItem[r.key].stained += r.stained;
+      });
+    }
+    const itemRows = Object.values(perItem).map(it=>{
+      const missing = Math.max(0, it.sent - it.clean - it.stained);
+      return Object.assign({}, it, {
+        missing,
+        pctS: it.sent ? (it.stained / it.sent * 100) : null,
+        pctM: it.sent ? (missing / it.sent * 100) : null
+      });
+    }).filter(it=> it.sent > 0 || it.clean > 0 || it.stained > 0)
+      .sort((a,b)=> ((b.pctS||0) + (b.pctM||0)) - ((a.pctS||0) + (a.pctM||0)));
+
+    const totals = itemRows.reduce((acc, it)=>{
+      acc.sent += it.sent; acc.clean += it.clean; acc.stained += it.stained; acc.missing += it.missing;
+      return acc;
+    }, {sent:0, clean:0, stained:0, missing:0});
+
+    return { recentDates, itemRows, totals };
+  }
+
+  function generateAggregateAnalysisText(recentDates, itemRows, totals){
+    const lines = [];
+    lines.push(`ANÁLISIS HISTÓRICO — últimos ${recentDates.length} día(s) con datos de recepción`);
+    lines.push('');
+    if(itemRows.length === 0){
+      lines.push('Todavía no hay suficientes datos de envío/recepción para un análisis histórico. Registra al menos un día de Limpio/Manchado, o completa los reportes de Envío correspondientes.');
+      return lines.join('\n');
+    }
+    const noSentData = totals.sent === 0;
+    if(noSentData){
+      lines.push('⚠ Ninguno de estos días tiene un reporte de Envío del día anterior guardado, así que no se puede calcular % de faltante todavía. Esto es lo recibido en el periodo:');
+      lines.push('');
+    }
+    const pctStained = totals.sent ? (totals.stained / totals.sent * 100) : null;
+    const pctMissing = totals.sent ? (totals.missing / totals.sent * 100) : null;
+    const totalReceived = totals.clean + totals.stained;
+    if(noSentData){
+      lines.push(`Total recibido: ${totalReceived} (Limpio: ${totals.clean} | Manchado/dañado: ${totals.stained})`);
+    } else {
+      lines.push(`Total enviado: ${totals.sent} | Limpio: ${totals.clean} | Manchado/dañado: ${totals.stained} (${pctStained.toFixed(1)}%) | Faltante: ${totals.missing} (${pctMissing.toFixed(1)}%)`);
+    }
+    lines.push('');
+    const worst = itemRows.filter(r=> (r.pctS !== null && r.pctS >= 10) || (r.pctM !== null && r.pctM >= 5)).slice(0,6);
+    if(worst.length){
+      lines.push('Líneas con mayor tasa de manchado/faltante en el periodo:');
+      worst.forEach(r=> lines.push(`- ${r.label}: manchado ${r.pctS.toFixed(1)}% (${r.stained}/${r.sent}), faltante ${r.pctM.toFixed(1)}% (${r.missing}/${r.sent})`));
+      lines.push('');
+    }
+    lines.push('Posibles causas:');
+    let anyCause = false;
+    if(pctMissing !== null && pctMissing >= 5){ lines.push('- El faltante se mantiene por encima del 5% durante varios días: sugiere un problema recurrente de conteo o pérdida en la lavandería, no un evento aislado.'); anyCause = true; }
+    if(pctStained !== null && pctStained >= 10){ lines.push('- El nivel de manchado/daño se mantiene alto de forma consistente: vale la pena una conversación formal con la lavandería sobre su proceso de lavado.'); anyCause = true; }
+    if(worst.length >= 3){ lines.push('- El problema está concentrado en varias líneas específicas más que distribuido parejo — revisar si comparten un mismo ciclo de lavado o punto de manejo.'); anyCause = true; }
+    if(noSentData && totals.stained > 0){ lines.push('- Hay piezas manchadas/dañadas recibidas en el periodo sin envíos registrados para comparar — completa los reportes de Envío para poder calcular tasas reales.'); anyCause = true; }
+    if(!anyCause && !noSentData) lines.push('- Los niveles de faltante y manchado están dentro de un rango razonable para operación normal.');
+    lines.push('');
+    lines.push('Nota: este análisis es generado automáticamente. Puedes editarlo, agregar contexto (cambios de lavandería, incidentes puntuales) o corregirlo — tus cambios quedan guardados y ya no se sobrescriben solos una vez editados.');
+    return lines.join('\n');
+  }
+
+  async function renderRecepHistAnalysis(){
+    const { recentDates, itemRows, totals } = await computeRecepHistoryAggregate(14);
+    const metricsEl = $('recepHistAnalysisMetrics');
+    if(itemRows.length === 0){
+      metricsEl.innerHTML = '<div class="empty">Todavía no hay suficientes días con datos.</div>';
+    } else {
+      const rowsHtml = itemRows.map(r=>{
+        const pctS = r.pctS || 0, pctM = r.pctM || 0;
+        const style = (pctS >= 10 || pctM >= 5) ? 'style="color:#B03A2E; font-weight:700;"' : '';
+        return `<tr ${style}><td>${r.label}</td><td>${pctS.toFixed(1)}%</td><td>${pctM.toFixed(1)}%</td></tr>`;
+      }).join('');
+      metricsEl.innerHTML = `<table id="recepHistAnalysisTable"><thead><tr><th>Artículo</th><th>% Manchado</th><th>% Faltante</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    }
+    const notesEl = $('recepHistAnalysisNotes');
+    const edited = await isSummaryEdited();
+    const saved = await loadSummaryNotes();
+    if(edited && saved && saved.trim()){
+      notesEl.value = saved;
+    } else {
+      const generated = generateAggregateAnalysisText(recentDates, itemRows, totals);
+      notesEl.value = generated;
+      await saveSummaryNotes(generated, false);
+    }
+  }
+
+  let recepHistAnalysisSaveTimer = null;
+  $('recepHistAnalysisNotes').addEventListener('input', ()=>{
+    clearTimeout(recepHistAnalysisSaveTimer);
+    recepHistAnalysisSaveTimer = setTimeout(async ()=>{
+      await saveSummaryNotes($('recepHistAnalysisNotes').value, true);
+    }, 600);
+  });
+
+  $('recepHistAnalysisRegen').addEventListener('click', async ()=>{
+    if(!confirm('Esto reemplaza el texto actual con un análisis generado automáticamente. ¿Continuar?')) return;
+    const { recentDates, itemRows, totals } = await computeRecepHistoryAggregate(14);
+    const generated = generateAggregateAnalysisText(recentDates, itemRows, totals);
+    $('recepHistAnalysisNotes').value = generated;
+    await saveSummaryNotes(generated, false);
+    showToast('Análisis regenerado');
+  });
+
+  function compressImage(file, maxW, quality){
+    maxW = maxW || 800;
+    quality = quality || 0.7;
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let w = img.width, h = img.height;
+          if(w > maxW){ h = Math.round(h * (maxW / w)); w = maxW; }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if(!ctx){ reject(new Error('canvas no soportado')); return; }
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = ()=> reject(new Error('No se pudo leer la imagen'));
+        img.src = reader.result;
+      };
+      reader.onerror = ()=> reject(new Error('No se pudo leer el archivo'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function renderRecepPhotos(){
+    const recepDay = await loadRecepDay(viewDateRecep);
+    const grid = $('recepPhotoGrid');
+    grid.innerHTML = '';
+    recepDay.photos.forEach((p, idx)=>{
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb';
+      thumb.innerHTML = `<img src="${p.dataUrl}" alt="Evidencia ${idx+1}"><button type="button" data-idx="${idx}">×</button>`;
+      grid.appendChild(thumb);
+    });
+    grid.querySelectorAll('button[data-idx]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const idx = parseInt(btn.dataset.idx, 10);
+        const day = await loadRecepDay(viewDateRecep);
+        day.photos.splice(idx, 1);
+        await saveRecepDay(viewDateRecep, day);
+        await renderRecepPhotos();
+      });
+    });
+  }
+
+  $('recepPhotoBtn').addEventListener('click', ()=> $('recepPhotoInput').click());
+
+  $('recepPhotoInput').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    if(files.length === 0) return;
+    const btn = $('recepPhotoBtn');
+    btn.disabled = true;
+    const recepDay = await loadRecepDay(viewDateRecep);
+    let added = 0;
+    for(const file of files){
+      try{
+        const dataUrl = await compressImage(file);
+        recepDay.photos.push({ dataUrl, ts: Date.now() });
+        added++;
+      }catch(err){ /* skip a photo that failed to process, keep the rest */ }
+    }
+    await saveRecepDay(viewDateRecep, recepDay);
+    e.target.value = '';
+    btn.disabled = false;
+    await renderRecepPhotos();
+    showToast(added > 0 ? `${added} foto(s) agregada(s)` : 'No se pudo procesar la foto');
+  });
+
+  async function refreshWaLinkRecep(){
+    const link = $('waBtnRecep');
+    if(!link) return;
+    const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+    if(nonEmpty.length === 0){
+      link.href = '#';
+      link.dataset.text = '';
+      return;
+    }
+    let lines = [`🧺 ${COMPANY_NAME}`, `Recepción de Lencería — ${formatDate(viewDateRecep)}`, `Enviado el ${formatDate(prevDateKey)}`, ''];
+    nonEmpty.forEach(r=> lines.push(`${r.label}: Limpio ${r.clean} | Manchado ${r.stained} | Faltan ${r.missing}`));
+    lines.push('', `Totales — Enviado ${totals.sent} | Limpio ${totals.clean} | Manchado ${totals.stained} | Faltan ${totals.missing}`);
+    const text = lines.join('\n');
+    link.dataset.text = text;
+    link.href = 'https://wa.me/?text=' + encodeURIComponent(text);
+  }
+
+  $('waBtnRecep').addEventListener('click', async (ev)=>{
+    const text = ev.currentTarget.dataset.text;
+    if(!text){ ev.preventDefault(); showToast('Nada que compartir todavía'); return; }
+    if(navigator.share){
+      ev.preventDefault();
+      try{
+        await navigator.share({title:'Recepción de Lencería', text});
+      }catch(e){
+        if(!(e && e.name === 'AbortError')){
+          window.open(ev.currentTarget.href, '_blank');
+        }
+      }
+    }
+  });
+
+  async function generatePDFRecepcion(dateKey, lang){
+    const t = I18N[lang] || I18N.es;
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      throw new Error('La librería jsPDF no cargó (revisa tu conexión a internet — este archivo la descarga de cdnjs.cloudflare.com)');
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'pt', format:'a4'});
+    const pageW = doc.internal.pageSize.getWidth();
+    const navy = [28,43,74];
+    const gold = [184,146,61];
+    const teal = [79,124,119];
+    const lineGray = [216,210,196];
+    const red = [176,58,46];
+
+    const { prevDateKey, rows, totals } = await computeRecepRows(dateKey);
+
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, pageW, 98, 'F');
+    doc.setFillColor(...gold);
+    doc.rect(0, 98, pageW, 4, 'F');
+    doc.setTextColor(228, 211, 165);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','bold');
+    doc.text(t.companyLine(COMPANY_NAME), 40, 28);
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(20);
+    doc.text(t.recepTitle, 40, 58);
+    doc.setFontSize(11);
+    doc.setFont('helvetica','normal');
+    doc.text(t.date + ': ' + formatDate(dateKey) + '   |   ' + t.sentOn + ': ' + formatDate(prevDateKey), 40, 84);
+
+    let y = 130;
+    doc.setTextColor(...navy);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','bold');
+    doc.text(t.itemCol, 40, y);
+    doc.text(t.sentCol, 265, y);
+    doc.text(t.cleanCol, 335, y);
+    doc.text(t.stainedCol, 405, y);
+    doc.text(t.missingCol, pageW - 90, y);
+    y += 8;
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1);
+    doc.line(40, y, pageW - 40, y);
+    y += 18;
+
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    for(const r of nonEmpty){
+      if(y > 740){ doc.addPage(); y = 60; }
+      doc.setTextColor(...navy);
+      doc.setFont('helvetica','normal');
+      doc.text(r.label, 40, y);
+      doc.text(String(r.sent), 270, y);
+      doc.text(String(r.clean), 340, y);
+      doc.text(String(r.stained), 410, y);
+      if(r.missing > 0){ doc.setTextColor(...red); doc.setFont('helvetica','bold'); }
+      else { doc.setTextColor(...teal); doc.setFont('helvetica','bold'); }
+      doc.text(String(r.missing), pageW - 90, y);
+      doc.setDrawColor(...lineGray);
+      doc.setLineWidth(0.5);
+      doc.line(40, y + 8, pageW - 40, y + 8);
+      y += 24;
+    }
+
+    y += 10;
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(1.4);
+    doc.line(40, y, pageW - 40, y);
+    y += 20;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(...navy);
+    doc.text(t.sentCol + ': ' + totals.sent, 40, y);
+    doc.text(t.cleanCol + ': ' + totals.clean, 200, y);
+    doc.text(t.stainedCol + ': ' + totals.stained, 330, y);
+    if(totals.missing > 0) doc.setTextColor(...red); else doc.setTextColor(...teal);
+    doc.text(t.missingCol + ': ' + totals.missing, pageW - 150, y);
+    y += 30;
+
+    const recepDay = await loadRecepDay(dateKey);
+
+    // Analysis / possible-causes text — whatever is currently saved (auto-generated or edited by the user)
+    const analysisText = (recepDay.analysisNotes || '').trim();
+    if(analysisText){
+      if(y > 620){ doc.addPage(); y = 60; }
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...navy);
+      doc.text(lang === 'en' ? 'ANALYSIS & POSSIBLE CAUSES' : 'ANÁLISIS Y POSIBLES CAUSAS', 40, y);
+      y += 8;
+      doc.setDrawColor(...navy);
+      doc.setLineWidth(1);
+      doc.line(40, y, pageW - 40, y);
+      y += 16;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(60,60,60);
+      const analysisLines = doc.splitTextToSize(analysisText, pageW - 80);
+      for(const line of analysisLines){
+        if(y > 780){ doc.addPage(); y = 60; }
+        doc.text(line, 40, y);
+        y += 12;
+      }
+      y += 14;
+    }
+
+    if(recepDay.photos.length){
+      if(y > 640){ doc.addPage(); y = 60; }
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...navy);
+      doc.text(t.photosTitle, 40, y);
+      y += 14;
+      const thumbSize = 130, gap = 12, perRow = 3;
+      let col = 0;
+      for(const photo of recepDay.photos){
+        if(y + thumbSize > 780){ doc.addPage(); y = 60; col = 0; }
+        const x = 40 + col * (thumbSize + gap);
+        try{ doc.addImage(photo.dataUrl, 'JPEG', x, y, thumbSize, thumbSize); }catch(e){}
+        col++;
+        if(col >= perRow){ col = 0; y += thumbSize + gap; }
+      }
+      if(col !== 0) y += thumbSize + gap;
+    }
+
+    const sigW = 190, sigH = 55;
+    if(y > 700 - sigH){ doc.addPage(); y = 60; }
+    y += 20 + sigH;
+    const leftX = 40, rightX = pageW - 250;
+    const deliverSig = signaturePads.recepDeliver && signaturePads.recepDeliver.dataUrl();
+    const receiveSig = signaturePads.recepReceive && signaturePads.recepReceive.dataUrl();
+    if(deliverSig){ try{ doc.addImage(deliverSig, 'PNG', leftX, y - sigH, sigW, sigH); }catch(e){} }
+    if(receiveSig){ try{ doc.addImage(receiveSig, 'PNG', rightX, y - sigH, sigW, sigH); }catch(e){} }
+    doc.setDrawColor(...navy);
+    doc.setLineWidth(0.8);
+    doc.line(leftX, y, leftX + 210, y);
+    doc.line(rightX, y, rightX + 210, y);
+    y += 14;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...navy);
+    doc.text(t.deliveredByLaundry, leftX, y);
+    doc.text(t.receivedByHouseman, rightX, y);
+    y += 14;
+    const deliverName = ($('recepDeliverName') && $('recepDeliverName').value || '').trim();
+    const receiveName = ($('recepReceiveName') && $('recepReceiveName').value || '').trim();
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.text(t.nameLabel + ': ' + (deliverName || '_______________'), leftX, y);
+    doc.text(t.nameLabel + ': ' + (receiveName || '_______________'), rightX, y);
+    y += 22;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(120,120,120);
+    doc.text(t.dateTimeLine, leftX, y);
+    doc.text(t.dateTimeLine, rightX, y);
+
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text(t.footer(COMPANY_NAME), 40, 810);
+
+    doc.save('reporte-recepcion-' + dateKey + '-' + lang + '.pdf');
+  }
+
+  function exportExcelRecepcion(dateKey, prevDateKey, rows, totals){
+    if(typeof XLSX === 'undefined'){
+      throw new Error('La librería XLSX no cargó (revisa tu conexión a internet — este archivo la descarga de cdnjs.cloudflare.com)');
+    }
+    const nonEmpty = rows.filter(r=> r.sent > 0 || r.clean > 0 || r.stained > 0);
+    const headers = ['Artículo', 'Enviado (' + formatDate(prevDateKey) + ')', 'Limpio', 'Manchado/Dañado', 'Faltante'];
+    const aoa = [
+      ['REPORTE DE RECEPCIÓN DE LENCERÍA'],
+      [COMPANY_NAME + ' · Housekeeping · ' + formatDate(dateKey)],
+      [],
+      headers
+    ];
+    nonEmpty.forEach(r=> aoa.push([r.label, r.sent, r.clean, r.stained, r.missing]));
+    aoa.push(['TOTALES', totals.sent, totals.clean, totals.stained, totals.missing]);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:24}, {wch:20}, {wch:12}, {wch:18}, {wch:12}];
+    ws['!merges'] = [
+      {s:{r:0,c:0}, e:{r:0,c:4}},
+      {s:{r:1,c:0}, e:{r:1,c:4}}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Recepción');
+
+    const howTo = [
+      ['Cómo usar este reporte'],
+      [],
+      ['1.', 'Cada fila es un artículo. "Enviado" es lo que salió hacia la lavandería el día anterior.'],
+      [],
+      ['2.', '"Faltante" se calcula solo: Enviado − (Limpio + Manchado/Dañado). Si es mayor a 0, revisa con la lavandería.'],
+      [],
+      ['3.', 'Las fotos de evidencia solo están disponibles en el PDF, no en este Excel.']
+    ];
+    const wsHow = XLSX.utils.aoa_to_sheet(howTo);
+    wsHow['!cols'] = [{wch:4}, {wch:90}];
+    XLSX.utils.book_append_sheet(wb, wsHow, 'Cómo usar');
+
+    XLSX.writeFile(wb, `reporte-recepcion-${dateKey}.xlsx`);
+  }
+
+  $('pdfBtnRecep').addEventListener('click', async ()=>{
+    const btn = $('pdfBtnRecep');
+    const lang = $('pdfLangRecep').value === 'en' ? 'en' : 'es';
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Generando…';
+    try{
+      await generatePDFRecepcion(viewDateRecep, lang);
+      showToast('PDF generado');
+    }catch(e){
+      showToast('Error PDF: ' + (e && e.message ? e.message : 'desconocido'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  });
+
+  $('excelBtnRecep').addEventListener('click', async ()=>{
+    const btn = $('excelBtnRecep');
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Generando…';
+    try{
+      const { prevDateKey, rows, totals } = await computeRecepRows(viewDateRecep);
+      exportExcelRecepcion(viewDateRecep, prevDateKey, rows, totals);
+      showToast('Excel generado');
+    }catch(e){
+      showToast('Error Excel: ' + (e && e.message ? e.message : 'desconocido'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  });
+
+  $('clearBtnRecep').addEventListener('click', async ()=>{
+    if(!confirm('¿Vaciar la recepción de este día? (las fotos también se borran)')) return;
+    await saveRecepDay(viewDateRecep, {items:{}, photos:[]});
+    await renderRecepGrid();
+    await renderHistoryRecep();
+    await renderRecepHistAnalysis();
+  });
+
+  $('dateSelRecep').addEventListener('change', (e)=>{
+    viewDateRecep = e.target.value || todayStr();
+    renderRecepGrid();
+  });
+
+  async function renderHistoryRecep(){
+    const dates = await listRecepDates();
+    const list = $('historyListRecep');
+    const others = dates.filter(d => d !== todayStr());
+    if(others.length === 0){
+      list.innerHTML = '<div class="empty">Sin reportes anteriores todavía.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    for(const d of others.slice(0,14)){
+      const { totals } = await computeRecepRows(d);
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = `<span class="d">${formatDate(d)}</span><span class="t">${totals.clean + totals.stained} recibidas</span>
+        <button data-date="${d}">Ver</button>`;
+      list.appendChild(row);
+    }
+    list.querySelectorAll('button[data-date]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        viewDateRecep = btn.dataset.date;
+        $('dateSelRecep').value = viewDateRecep;
+        renderRecepGrid();
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+  }
+
+  function showTab(tab){
+    $('tabEnvio').style.display = tab === 'envio' ? '' : 'none';
+    $('tabRecepcion').style.display = tab === 'recepcion' ? '' : 'none';
+    $('tabBtnEnvio').classList.toggle('active', tab === 'envio');
+    $('tabBtnRecepcion').classList.toggle('active', tab === 'recepcion');
+    if(tab === 'recepcion'){
+      if(signaturePads.recepDeliver) signaturePads.recepDeliver.resize();
+      if(signaturePads.recepReceive) signaturePads.recepReceive.resize();
+    }
+  }
+
+  $('tabBtnEnvio').addEventListener('click', ()=> showTab('envio'));
+  $('tabBtnRecepcion').addEventListener('click', async ()=>{
+    showTab('recepcion');
+    await renderRecepGrid();
+    await renderHistoryRecep();
+    await renderRecepHistAnalysis();
+  });
 
   $('clearBtn').addEventListener('click', async ()=>{
     if(!confirm('¿Vaciar todos los artículos de este día?')) return;
