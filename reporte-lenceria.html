@@ -420,8 +420,8 @@
     <div class="card">
       <h2>Evidencia fotográfica <span class="tag">Manchado/Dañado</span></h2>
       <div class="hint" style="margin:0 0 10px;">Fotos del lote dañado, útiles como evidencia ante la lavandería.</div>
-      <input type="file" id="recepPhotoInput" accept="image/*" capture="environment" multiple style="display:none;">
-      <button type="button" class="btn-gold" id="recepPhotoBtn" style="width:100%;">+ Agregar foto</button>
+      <input type="file" id="recepPhotoInput" accept="image/*" multiple style="display:none;">
+      <button type="button" class="btn-gold" id="recepPhotoBtn" style="width:100%;">+ Agregar foto (cámara o galería)</button>
       <div class="recep-photo-grid" id="recepPhotoGrid"></div>
     </div>
 
@@ -894,7 +894,10 @@
     if(!raw) return {items:{}, photos:[]};
     try{
       const parsed = JSON.parse(raw);
-      return {items: parsed.items || {}, photos: parsed.photos || []};
+      // Preserve every saved field (items, photos, analysisNotes, analysisEdited, etc.)
+      // instead of only picking items/photos — dropping the rest silently discarded
+      // the saved analysis text and the "user edited this" flag on every read.
+      return Object.assign({items: {}, photos: []}, parsed);
     }catch(e){ return {items:{}, photos:[]}; }
   }
   async function saveRecepDay(dateKey, data){
@@ -2037,6 +2040,47 @@
     y += 30;
 
     const recepDay = await loadRecepDay(dateKey);
+
+    // Percentage table (% manchado / % faltante per item) — same data shown on-screen in "Análisis del día"
+    const pctRows = nonEmpty.map(r=>{
+      const pctS = r.sent ? (r.stained / r.sent * 100) : null;
+      const pctM = r.sent ? (r.missing / r.sent * 100) : null;
+      return Object.assign({}, r, {pctS, pctM});
+    }).sort((a,b)=> ((b.pctS||0)+(b.pctM||0)) - ((a.pctS||0)+(a.pctM||0)));
+
+    if(pctRows.length){
+      if(y > 640){ doc.addPage(); y = 60; }
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...navy);
+      doc.text(lang === 'en' ? 'PERCENTAGE BY ITEM' : 'PORCENTAJE POR ARTÍCULO', 40, y);
+      y += 8;
+      doc.setDrawColor(...navy);
+      doc.setLineWidth(1);
+      doc.line(40, y, pageW - 40, y);
+      y += 16;
+      doc.setFontSize(9);
+      doc.setFont('helvetica','bold');
+      doc.text(t.itemCol, 40, y);
+      doc.text(lang === 'en' ? '% STAINED/DMG.' : '% MANCHADO', 300, y);
+      doc.text(lang === 'en' ? '% MISSING' : '% FALTANTE', 430, y);
+      y += 14;
+      doc.setFont('helvetica','normal');
+      for(const r of pctRows){
+        if(y > 780){ doc.addPage(); y = 60; }
+        const flagged = (r.pctS !== null && r.pctS >= 10) || (r.pctM !== null && r.pctM >= 5);
+        doc.setTextColor(flagged ? red[0] : 60, flagged ? red[1] : 60, flagged ? red[2] : 60);
+        doc.setFont('helvetica', flagged ? 'bold' : 'normal');
+        doc.text(r.label, 40, y);
+        doc.text(r.pctS === null ? '—' : r.pctS.toFixed(1) + '%', 300, y);
+        doc.text(r.pctM === null ? '—' : r.pctM.toFixed(1) + '%', 430, y);
+        doc.setDrawColor(...lineGray);
+        doc.setLineWidth(0.4);
+        doc.line(40, y + 6, pageW - 40, y + 6);
+        y += 16;
+      }
+      y += 14;
+    }
 
     // Analysis / possible-causes text — whatever is currently saved (auto-generated or edited by the user)
     const analysisText = (recepDay.analysisNotes || '').trim();
